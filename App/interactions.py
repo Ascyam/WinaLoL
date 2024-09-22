@@ -30,7 +30,7 @@ async def afficher_aide(ctx):
     **??balance** - Affiche ton solde actuel d'akhy coins.
     Exemple : `??balance`
 
-    **??active_bets** - Affiche la liste des paris encore actifs, du plus gros au plus petit, jusqu'à 30 paris.
+    **??active_bets** - Affiche la liste des paris encore actifs, du plus gros au plus petit, jusqu'à 20 paris.
     Exemple : `??active_bets`
 
     **??rankings** - Affiche le classement Elo des invocateurs suivis du meilleur au moins bon.
@@ -79,7 +79,7 @@ async def balance(ctx):
     balance = get_balance(user_id)
     await ctx.send(f"Tu as {balance} akhy coins.")
 
-@bot.command(name='active_bets', help="Affiche les 30 plus gros paris encore actifs.")
+@bot.command(name='active_bets', help="Affiche les 20 plus gros paris encore actifs.")
 async def active_bets(ctx):
     active_bets_list = get_active_bets()
     
@@ -88,7 +88,7 @@ async def active_bets(ctx):
         return
 
     # Construire le message à envoyer
-    bets_message = "**Les 30 plus gros paris encore actifs :**\n"
+    bets_message = "**Les 20 plus gros paris encore actifs :**\n"
     for bet in active_bets_list:
         user = await bot.fetch_user(bet['user_id'])  # Récupérer l'utilisateur via l'ID
         bets_message += f"**{user.name}** a parié **{bet['amount']} akhy coins** sur la {'victoire' if bet['bet_type'] == 'win' else 'défaite'} de **{bet['friend_name']}**.\n"

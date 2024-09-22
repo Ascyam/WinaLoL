@@ -34,11 +34,59 @@ def is_friend_in_game(riot_puuid):
     except requests.RequestException as e:
         print(f"Erreur lors de la requête à Riot API : {e}")
         return None
-        
+
+def get_match_history(riot_puuid):
+    match_history_url = f"https://{REGION_Riot}.api.riotgames.com/lol/match/v5/matches/by-puuid/{riot_puuid}/ids?api_key={RIOT_API_KEY}"
+    
+    headers = {
+        "X-Riot-Token": RIOT_API_KEY
+    }
+    response = requests.get(match_history_url, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()  # Retourne la liste des IDs de match
+    return None
+
+def get_game_result_2(riot_puuid, match_id):
+    match_url = f"https://{REGION_Riot}.api.riotgames.com/lol/match/v5/matches/{match_id}?api_key={RIOT_API_KEY}"
+    
+    headers = {
+        "X-Riot-Token": RIOT_API_KEY
+    }
+    match_response = requests.get(match_url, headers=headers)
+    
+    if match_response.status_code == 200:
+        match_data = match_response.json()
+        participant_info = next(
+            (p for p in match_data['info']['participants'] if p['puuid'] == riot_puuid),
+            None
+        )
+        if participant_info:
+            return "win" if participant_info['win'] else "lose"
+    return None
+
+def get_first_20_games(riot_puuid):
+    match_ids = get_match_history(riot_puuid)
+    if match_ids:
+        results = []
+        for match_id in match_ids[:20]:  # Limiter à 20 matchs
+            result = get_game_result(riot_puuid, match_id)
+            results.append(result)
+        return results
+    return None
+
+def calculate_winrate2(puuid):
+    results = get_first_20_games(puuid)
+    if results:
+        wins = results.count("win")  # Compte les victoires
+        winrate = wins / len(results)  # Calcul du winrate
+        return winrate
+    return 0  # Retourne 0 si aucun résultat n'est disponible
+
 # Vérifier le résultat d'une partie
-def get_game_result(riot_puuid):
+def get_game_result(riot_puuid, number):
     # URL pour récupérer l'historique des matchs
-    match_history_url = f"https://{REGION_Lol}.api.riotgames.com/lol/match/v5/matches/by-puuid/{riot_puuid}/ids?api_key={RIOT_API_KEY}"
+    match_history_url = f"https://{REGION_Riot}.api.riotgames.com/lol/match/v5/matches/by-puuid/{riot_puuid}/ids?api_key={RIOT_API_KEY}"
     
     headers = {
         "X-Riot-Token": RIOT_API_KEY
@@ -47,12 +95,10 @@ def get_game_result(riot_puuid):
 
     if response.status_code == 200:
         matches = response.json()
-
         if matches:
-            latest_match_id = matches[0]  # Dernier match joué
-            match_url = f"https://{REGION_Lol}.api.riotgames.com/lol/match/v5/matches/{latest_match_id}?api_key={RIOT_API_KEY}"
+            latest_match_id = matches[number]  # Dernier match joué
+            match_url = f"https://{REGION_Riot}.api.riotgames.com/lol/match/v5/matches/{latest_match_id}?api_key={RIOT_API_KEY}"
             match_response = requests.get(match_url, headers=headers)
-
             if match_response.status_code == 200:
                 match_data = match_response.json()
                 # Extraire les informations du match, vérifier si l'ami a gagné ou perdu
@@ -63,6 +109,17 @@ def get_game_result(riot_puuid):
                 if participant_info:
                     return "win" if participant_info['win'] else "lose"
     return None
+
+def calculate_winrate(puuid):
+    # Compter les victoires sur les 20 dernières parties
+    wins = 0
+    for i in range(20):
+        result = get_game_result(puuid, i)
+        if result and result['win']:  # Supposons que result['win'] soit True si le joueur a gagné
+            wins += 1
+
+    winrate = (wins / 20)
+    return winrate
 
 # Fonction qui surveille les amis et envoie une notification sur Discord
 async def notify_if_friends_in_game():
@@ -100,22 +157,25 @@ async def notify_if_friends_in_game():
 
             # Si l'ami vient de finir sa partie
             if not in_game and previously_in_game.get(summoner_name, False):
-                result = get_game_result(puuid)
-                print(f"Summoner {summoner_name} here.")
+                result = get_game_result(puuid,0)
+                print(f"Summoner1 {result} here.")
                 if result:
                     await channel.send(f"{summoner_name} a terminé une partie. Résultat : {'Victoire' if result == 'win' else 'Défaite'}.")
-                    print(f"Summoner {summoner_name} here2.")
                     # Redistribuer les gains
-                    winners, losers = distribute_gains(summoner_name, result)
+                    cote = calculate_winrate(puuid)
+                    winners, losers = distribute_gains(summoner_name, result, cote)
 
                     for winner in winners:
                         user = await bot.fetch_user(winner['user_id'])  # Récupérer l'utilisateur Discord
-                        await channel.send(f"{user.mention} a récupéré {int(winner['amount'] * 1.8)} akhy coins grâce à {summoner_name}.")
+                        await channel.send(f"{user.mention} a récupéré {int(winner['amount'] * (math.exp(3*(1-cote) - (3*cote)) + 0.1))} akhy coins grâce à {summoner_name}.")
                     
                     for loser in losers:
                         user = await bot.fetch_user(loser['user_id'])  # Récupérer l'utilisateur Discord
                         await channel.send(f"{user.mention} a perdu son pari à cause {summoner_name}.")
                     
+                    print(f"Gagnants : {winners}")
+                    print(f"Perdants : {losers}")
+
                     # Supprimer les paris pour cet ami après la fin de la partie
                     remove_finished_bets(summoner_name)
 
@@ -126,7 +186,7 @@ async def notify_if_friends_in_game():
             previously_in_game[summoner_name] = in_game
         
         # Attendre 30 secondes avant de vérifier à nouveau
-        await asyncio.sleep(30)
+        await asyncio.sleep(60)
 
 
 @bot.event

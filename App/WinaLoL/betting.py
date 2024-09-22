@@ -1,3 +1,4 @@
+import math
 from .wallet import add_coins, remove_coins, get_balance
 
 # Structure pour stocker les paris en cours
@@ -36,6 +37,9 @@ def place_bet(user_id, summoner_name, amount, choice):
     # Vérifier le solde de l'utilisateur
     if get_balance(user_id) < amount:
         return False, "Solde insuffisant pour placer ce pari."
+    
+    if 100000 < amount:
+        return False, "Tu ne peux parier que 100000 akhy coins maximum."
 
     # Retirer les coins de l'utilisateur
     remove_coins(user_id, amount)
@@ -50,7 +54,7 @@ def place_bet(user_id, summoner_name, amount, choice):
     return True, f"Tu as parié {amount} akhy coins sur la {'victoire' if choice == 'win' else 'défaite'} de {summoner_name}."
 
 # Calcul des gains à la fin d'une partie
-def distribute_gains(friend_name, result):
+def distribute_gains(friend_name, result, winrate):
     if friend_name not in active_bets:
         return
 
@@ -64,7 +68,7 @@ def distribute_gains(friend_name, result):
 
     # Répartir les gains : on multiplie la mise gagnée par 1.8
     for winner in winners:
-        winnings = int(winner['amount'] * 1.8)
+        winnings = int(winner['amount'] * (math.exp(3*(1-winrate) - (3*winrate)) + 0.1))
         add_coins(winner['user_id'], winnings)
         print(f"{winner['user_id']} a gagné {winnings} akhy coins grâce à {friend_name}.")
 
@@ -91,8 +95,8 @@ def get_active_bets():
     # Trier par montant décroissant
     sorted_bets = sorted(active_bets_list, key=lambda x: x['amount'], reverse=True)
     
-    # Limiter à 30 paris
-    return sorted_bets[:30]
+    # Limiter à 20 paris
+    return sorted_bets[:20]
 
 # Ajouter une fonction pour supprimer les paris après la fin de la partie
 def remove_finished_bets(friend_name):
