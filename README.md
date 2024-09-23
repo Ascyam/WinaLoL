@@ -25,7 +25,7 @@ WinaLoL is a Discord bot designed specifically for League of Legends enthusiasts
 - **Help Command**: Access a comprehensive list of commands to assist you in navigating the bot's functionalities easily.
 
 ## Getting Started
-To get started with WinaLoL, simply invite the bot to your Discord server and start interacting with it using the commands provided. Enjoy tracking your friends' matches, placing bets, and managing your Akhy Coins!
+(Not available yet) To get started with WinaLoL, simply invite the bot to your Discord server and start interacting with it using the commands provided. Enjoy tracking your friends' matches, placing bets, and managing your Akhy Coins!
 
 ## Contribution
 If you would like to contribute to WinaLoL, feel free to contact me on discord **@ascyam**. Your feedback and contributions would be highly appreciated!
