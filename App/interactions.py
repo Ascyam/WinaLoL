@@ -1,14 +1,17 @@
 import discord
 from discord.ext import commands
+from datetime import datetime, timedelta
 from .friends import add_friend, remove_friend, get_friends_list, get_summoner_rank
 from .WinaLoL.betting import place_bet, get_active_bets
-from .WinaLoL.wallet import get_balance
+from .WinaLoL.wallet import get_balance, add_coins
 from .dictionnaire import *
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True 
 bot = commands.Bot(command_prefix="??", intents=intents)
+
+user_claim_data  = {}
 
 @bot.command(name='aide', help="Affiche toutes les commandes disponibles.")
 async def afficher_aide(ctx):
@@ -35,6 +38,9 @@ async def afficher_aide(ctx):
 
     **??rankings** - Affiche le classement Elo des invocateurs suivis du meilleur au moins bon.
     Exemple : `??rankings`
+
+    **??daily** - Récupère 10 akhy coins une fois par jour. Après 10, 30 et 100 jours consécutifs de réclamations, tu peux recevoir un bonus unique de 50, 100 ou 1000 akhy coins respectivement.
+    Exemple : `??daily`
 
     **??aide** - Affiche cette aide détaillée.
     """
@@ -134,3 +140,61 @@ async def afficher_ranking(ctx):
             classement_message += f"{i}. **{summoner['name']}** - {summoner['tier']} {summoner['rank']} ({summoner['lp']} LP)\n"
 
         await ctx.send(classement_message)
+
+@bot.command(name='daily', help="Récupère 10 akhy coins une fois par jour, avec des bonus de jetons après 10, 30, et 100 jours consécutifs.")
+async def daily(ctx):
+    user_id = str(ctx.author.id)
+    current_time = datetime.now()
+
+    # Vérifier si l'utilisateur est déjà dans le dictionnaire
+    if user_id not in user_claim_data:
+        # Si c'est la première fois qu'il réclame, on initialise ses données
+        user_claim_data[user_id] = {
+            'last_claim': current_time,
+            'consecutive_days': 1
+        }
+        add_coins(user_id, 10)
+        await ctx.send("Tu as récupéré 10 akhy coins ! Reviens demain pour continuer ta série.")
+        return
+
+    # Récupérer les informations de l'utilisateur
+    last_claim_time = user_claim_data[user_id]['last_claim']
+    consecutive_days = user_claim_data[user_id]['consecutive_days']
+
+     # Vérifier si plus de 24 heures se sont écoulées depuis la dernière réclamation
+    if current_time - last_claim_time >= timedelta(days=1):
+        # Vérifier si la réclamation est consécutive ou non
+        if current_time - last_claim_time <= timedelta(days=2):
+            consecutive_days += 1  # Incrémenter les jours consécutifs
+        else:
+            consecutive_days = 1  # Réinitialiser à 1 si la série est brisée
+
+        # Donner les 10 jetons journaliers
+        add_coins(user_id, 10)
+        
+        # Vérifier les bonus en fonction des jours consécutifs
+        bonus = 0
+        if consecutive_days % 100 == 0 and consecutive_days > 0:
+            bonus = 1000  # Bonus de 1000 jetons après chaque 100 jours
+        elif consecutive_days % 30 == 0 and consecutive_days > 0:
+            bonus = 100  # Bonus de 100 jetons après chaque 30 jours
+        elif consecutive_days % 10 == 0 and consecutive_days > 0:
+            bonus = 50  # Bonus de 50 jetons après chaque 10 jours
+        
+        # Appliquer le bonus s'il existe
+        if bonus > 0:
+            add_coins(user_id, bonus)  # Ajout du bonus au portefeuille de l'utilisateur
+            await ctx.send(f"Félicitations ! Tu as récupéré un bonus de {bonus} akhy coins pour {consecutive_days} jours consécutifs de réclamations !")
+        
+        # Mise à jour des informations de l'utilisateur
+        user_claim_data[user_id]['last_claim'] = current_time
+        user_claim_data[user_id]['consecutive_days'] = consecutive_days
+
+        await ctx.send(f"Tu as récupéré 10 akhy coins ! ({consecutive_days} jours consécutifs)")
+    
+    else:
+        # Si l'utilisateur a déjà réclamé des jetons dans les dernières 24 heures
+        time_remaining = (last_claim_time + timedelta(days=1)) - current_time
+        hours, remainder = divmod(time_remaining.seconds, 3600)
+        minutes, _ = divmod(remainder, 60)
+        await ctx.send(f"Tu as déjà récupéré tes jetons aujourd'hui. Reviens dans {hours}h{minutes}m.")

@@ -4,6 +4,7 @@ from .wallet import add_coins, remove_coins, get_balance
 # Structure pour stocker les paris en cours
 active_bets = {}
 currently_ingame=[]
+summoner_ratings = {}  # Dictionnaire pour stocker les cotes des joueurs
 
 def add_summoner_to_active_bets(summoner_name):
     # Vérifie si le joueur est déjà dans active_bets
@@ -54,9 +55,12 @@ def place_bet(user_id, summoner_name, amount, choice):
     return True, f"Tu as parié {amount} akhy coins sur la {'victoire' if choice == 'win' else 'défaite'} de {summoner_name}."
 
 # Calcul des gains à la fin d'une partie
-def distribute_gains(friend_name, result, winrate):
+def distribute_gains(friend_name, result):
     if friend_name not in active_bets:
         return
+
+     # Récupérer la cote du joueur stockée dans summoner_ratings
+    odds = summoner_ratings.get(friend_name, 0.5)  # Valeur par défaut de 0.5 si la cote n'est pas trouvée
 
     # Récupérer les parieurs qui ont misé sur cette partie
     bets = active_bets.pop(friend_name, None)
@@ -66,9 +70,13 @@ def distribute_gains(friend_name, result, winrate):
     winners = bets[result]  # Liste des gagnants (ceux qui ont parié sur le bon résultat)
     losers = bets['win' if result == 'lose' else 'lose']  # Ceux qui ont perdu
 
-    # Répartir les gains : on multiplie la mise gagnée par 1.8
+    # Répartir les gains : on multiplie la mise gagnée 
     for winner in winners:
-        winnings = int(winner['amount'] * (math.exp(3*(1-winrate) - (3*winrate)) + 0.1))
+        if result == 'win':
+            winnings = int(winner['amount'] * (math.exp(2.5*(1-odds) - (2.5*odds)) + 1))
+        else:
+            winnings = int(winner['amount'] * (math.exp((2.5*odds) - 2.5*(1-odds)) + 1))
+
         add_coins(winner['user_id'], winnings)
         print(f"{winner['user_id']} a gagné {winnings} akhy coins grâce à {friend_name}.")
 
