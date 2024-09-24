@@ -132,9 +132,9 @@ async def notify_if_friends_in_game():
                     for winner in winners:
                         user = await bot.fetch_user(winner['user_id'])  # Récupérer l'utilisateur Discord
                         if result == 'win' :
-                            await channel.send(f"{user.mention} a récupéré {int(winner['amount'] * (math.exp(2.5*(1-summoner_ratings.get(summoner_name, 0.5)) - (2.5*summoner_ratings.get(summoner_name, 0.5))) + 1))} akhy coins grâce à {summoner_name}.")
+                            await channel.send(f"{user.mention} a récupéré {int(winner['amount'] * (math.exp(2.5*(1-summoner_ratings.get(summoner_name, 0.5)) - (2.5*summoner_ratings.get(summoner_name, 0.5)) - 0.3) + 1))} akhy coins grâce à {summoner_name}.")
                         else :
-                            await channel.send(f"{user.mention} a récupéré {int(winner['amount'] * (math.exp((2.5*summoner_ratings.get(summoner_name, 0.5)) - 2.5*(1-summoner_ratings.get(summoner_name, 0.5))) + 1))} akhy coins grâce à {summoner_name}.")
+                            await channel.send(f"{user.mention} a récupéré {int(winner['amount'] * (math.exp((2.5*summoner_ratings.get(summoner_name, 0.5)) - 2.5*(1-summoner_ratings.get(summoner_name, 0.5)) - 0.3) + 1))} akhy coins grâce à {summoner_name}.")
 
                     for loser in losers:
                         user = await bot.fetch_user(loser['user_id'])  # Récupérer l'utilisateur Discord
@@ -197,7 +197,7 @@ async def update_summoner_ratings():
 @bot.event
 async def on_ready():
     print(f'{bot.user} est connecté à Discord !')
-    asyncio.create_task(notify_if_friends_in_game())  # Exécuter ces tâches de manière parallèle
+    asyncio.create_task(notify_if_friends_in_game())  # Exécuter ces tâches en asynchrone
     asyncio.create_task(update_summoner_ratings())
 
 bot.run(TOKEN)

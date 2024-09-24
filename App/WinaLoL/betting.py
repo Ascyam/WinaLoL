@@ -73,9 +73,9 @@ def distribute_gains(friend_name, result):
     # Répartir les gains : on multiplie la mise gagnée 
     for winner in winners:
         if result == 'win':
-            winnings = int(winner['amount'] * (math.exp(2.5*(1-odds) - (2.5*odds)) + 1))
+            winnings = int(winner['amount'] * (math.exp(2.5*(1-odds) - (2.5*odds) - 0.3) + 1))
         else:
-            winnings = int(winner['amount'] * (math.exp((2.5*odds) - 2.5*(1-odds)) + 1))
+            winnings = int(winner['amount'] * (math.exp((2.5*odds) - 2.5*(1-odds) - 0.3) + 1))
 
         add_coins(winner['user_id'], winnings)
         print(f"{winner['user_id']} a gagné {winnings} akhy coins grâce à {friend_name}.")
