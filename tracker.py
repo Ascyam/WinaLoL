@@ -103,7 +103,17 @@ async def notify_if_friends_in_game():
                 
             # Si l'ami est en jeu et qu'il ne l'était pas auparavant, on envoie une notification
             if in_game and not previously_in_game.get(summoner_name, False):
-                await channel.send(f"{summoner_name} vient de commencer une partie de League of Legends ! Pariez sur sa game avec la commande **??bet**. La cote pour la win est de **{(math.exp(2.5*(1-summoner_ratings.get(summoner_name, 0.5)) - (2.5*summoner_ratings.get(summoner_name, 0.5))) + 1)}** et la cote pour la lose est de **{(math.exp((2.5*summoner_ratings.get(summoner_name, 0.5)) - 2.5*(1-summoner_ratings.get(summoner_name, 0.5))) + 1)}** ")
+                await channel.send(
+                    f"------------------------------------------------------------------------------------------------------------\n\n"
+                    f"🌟 **Nouveau Match !** 🌟\n\n"
+                    f"🎮 **{summoner_name}** vient de lancer une partie de **League of Legends** !\n\n"
+                    f"💰 **Vous pouvez parier dès maintenant avec la commande :** `??bet`\n\n"
+                    f"📊 **Cotes actuelles :**\n"
+                    f"   **Victoire (Win)** : **{round((math.exp(2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - (2.5 * summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1), 2)}**\n"
+                    f"   **Défaite (Lose)** : **{round((math.exp((2.5 * summoner_ratings.get(summoner_name, 0.5)) - 2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1), 2)}**\n\n"
+                    f"⏳ **N'oubliez pas** : Les paris sont ouverts uniquement pendant **3 minutes** après le lancement du match !\n\n"
+                )
+                
                 # Démarrer un chronomètre pour fermer les paris après 3 minutes
                 bet_timers[summoner_name] = time.time()
                 # Le summoner est en jeu    
@@ -132,9 +142,9 @@ async def notify_if_friends_in_game():
                     for winner in winners:
                         user = await bot.fetch_user(winner['user_id'])  # Récupérer l'utilisateur Discord
                         if result == 'win' :
-                            await channel.send(f"{user.mention} a récupéré {int(winner['amount'] * (math.exp(2.5*(1-summoner_ratings.get(summoner_name, 0.5)) - (2.5*summoner_ratings.get(summoner_name, 0.5)) - 0.3) + 1))} akhy coins grâce à {summoner_name}.")
+                            await channel.send(f"{user.mention} a récupéré {int(winner['amount'] * (math.exp(2.5*(1-summoner_ratings.get(summoner_name, 0.5)) - (2.5*summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1))} akhy coins grâce à {summoner_name}.")
                         else :
-                            await channel.send(f"{user.mention} a récupéré {int(winner['amount'] * (math.exp((2.5*summoner_ratings.get(summoner_name, 0.5)) - 2.5*(1-summoner_ratings.get(summoner_name, 0.5)) - 0.3) + 1))} akhy coins grâce à {summoner_name}.")
+                            await channel.send(f"{user.mention} a récupéré {int(winner['amount'] * (math.exp((2.5*summoner_ratings.get(summoner_name, 0.5)) - 2.5*(1-summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1))} akhy coins grâce à {summoner_name}.")
 
                     for loser in losers:
                         user = await bot.fetch_user(loser['user_id'])  # Récupérer l'utilisateur Discord
@@ -152,7 +162,7 @@ async def notify_if_friends_in_game():
             # Met à jour l'état précédent
             previously_in_game[summoner_name] = in_game
         
-        # Attendre 30 secondes avant de vérifier à nouveau
+        # Attendre 60 secondes avant de vérifier à nouveau
         await asyncio.sleep(60)
 
 async def update_summoner_rating_for_player(summoner_name, puuid):
