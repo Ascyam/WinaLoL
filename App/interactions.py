@@ -3,7 +3,7 @@ from discord.ext import commands
 from datetime import datetime, timedelta
 from .friends import add_friend, remove_friend, get_friends_list, get_summoner_rank
 from .WinaLoL.betting import place_bet, get_active_bets
-from .WinaLoL.wallet import get_balance, add_coins
+from .WinaLoL.wallet import get_balance, add_coins, user_wallets
 from .dictionnaire import *
 
 intents = discord.Intents.default()
@@ -38,6 +38,9 @@ async def afficher_aide(ctx):
 
     **??rankings** - Affiche le classement Elo des invocateurs suivis du meilleur au moins bon.
     Exemple : `??rankings`
+
+    **??leaderboard** - Affiche le classement des meilleurs parieurs en fonction de leur nombre de jetons.
+    Exemple : `??leaderboard`
 
     **??daily** - Récupère 10 akhy coins une fois par jour. Après 10, 30 et 100 jours consécutifs de réclamations, tu peux recevoir un bonus unique de 50, 100 ou 1000 akhy coins respectivement.
     Exemple : `??daily`
@@ -140,6 +143,32 @@ async def afficher_ranking(ctx):
             classement_message += f"{i}. **{summoner['name']}** - {summoner['tier']} {summoner['rank']} ({summoner['lp']} LP)\n"
 
         await ctx.send(classement_message)
+
+@bot.command(name='leaderboard', help="Affiche le classement des meilleurs parieurs en fonction de leur nombre de jetons.")
+async def leaderboard(ctx):
+    # Récupère les soldes de tous les parieurs
+    balances = user_wallets
+    
+    # Si aucun parieur n'a été trouvé
+    if not balances:
+        await ctx.send("Il n'y a pas encore de parieurs.")
+        return
+
+    # Trie les parieurs par solde décroissant
+    sorted_balances = sorted(balances.items(), key=lambda x: x[1], reverse=True)
+
+    # Limite à 10 (ou changez selon vos besoins)
+    top_parieurs = sorted_balances[:10]
+
+    # Créer le message avec le classement
+    leaderboard_message = "**Classement des parieurs :**\n\n"
+    for i, (user_id, balance) in enumerate(top_parieurs, start=1):
+        # Obtenir l'objet membre Discord pour le nom de l'utilisateur
+        user = await bot.fetch_user(user_id)
+        leaderboard_message += f"{i}. {user.display_name} - **{balance} Akhy coins**\n"
+
+    # Envoie le classement
+    await ctx.send(leaderboard_message)
 
 @bot.command(name='daily', help="Récupère 10 akhy coins une fois par jour, avec des bonus de jetons après 10, 30, et 100 jours consécutifs.")
 async def daily(ctx):
