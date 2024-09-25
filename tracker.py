@@ -85,6 +85,221 @@ def calculate_winrate(puuid):
         return winrate
     return 0  # Retourne 0 si aucun résultat n'est disponible
 
+def get_game_info(user_puuid):
+    # URL pour obtenir les infos du match via l'API Spectator de Riot
+    game_url = f"https://{REGION_Lol}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/{user_puuid}?api_key={RIOT_API_KEY}"
+
+    try:
+        response = requests.get(game_url)
+        if response.status_code != 200:
+            return f"Erreur : Impossible de récupérer les informations du match. Code: {response.status_code}"
+        
+        game_data = response.json()
+
+        # Récupération du mode de jeu
+        game_mode = game_data.get('gameMode', 'Inconnu')
+        game_type = game_data.get('gameType', 'Inconnu')
+
+        # Récupération de la liste des joueurs et des champions choisis
+        players = game_data.get('participants', [])
+        draft = []
+
+        for player in players:
+            summoner_name = player['riotId']
+            champion_id = player['championId']
+            champion_name = get_champion_name_from_api(champion_id)  
+            draft.append(f"🔹 {summoner_name} - **{champion_name}**")
+
+        # Création du message joli pour le mode de jeu et la draft
+        draft_message = (
+            f"🎮 **Mode de jeu :** {game_mode} ({game_type})\n\n"
+            f"🌟 **Composition des équipes :**\n\n"
+            f"{' - '.join(draft[:5])} (Équipe 1)\n\n"
+            f"{' - '.join(draft[5:])} (Équipe 2)"
+        )
+        return draft_message
+
+    except Exception as e:
+        return f"Erreur lors de la récupération des informations du match : {e}"
+    
+def get_champion_name(champion_id):
+    champions = {
+        266: "Aatrox",
+        103: "Ahri",
+        84: "Akali",
+        166: "Akshan",
+        12: "Alistar",
+        32: "Amumu",
+        34: "Anivia",
+        1: "Annie",
+        523: "Aphelios",
+        22: "Ashe",
+        136: "Aurelion Sol",
+        268: "Azir",
+        432: "Bard",
+        200: "Bel'Veth",
+        53: "Blitzcrank",
+        63: "Brand",
+        201: "Braum",
+        51: "Caitlyn",
+        164: "Camille",
+        69: "Cassiopeia",
+        31: "Cho'Gath",
+        42: "Corki",
+        122: "Darius",
+        131: "Diana",
+        119: "Draven",
+        36: "Dr. Mundo",
+        245: "Ekko",
+        60: "Elise",
+        28: "Evelynn",
+        81: "Ezreal",
+        9: "Fiddlesticks",
+        114: "Fiora",
+        105: "Fizz",
+        3: "Galio",
+        41: "Gangplank",
+        86: "Garen",
+        150: "Gnar",
+        79: "Gragas",
+        104: "Graves",
+        887: "Gwen",
+        120: "Hecarim",
+        74: "Heimerdinger",
+        420: "Illaoi",
+        39: "Irelia",
+        427: "Ivern",
+        40: "Janna",
+        59: "Jarvan IV",
+        24: "Jax",
+        126: "Jayce",
+        202: "Jhin",
+        222: "Jinx",
+        145: "Kai'Sa",
+        429: "Kalista",
+        43: "Karma",
+        30: "Karthus",
+        38: "Kassadin",
+        55: "Katarina",
+        10: "Kayle",
+        141: "Kayn",
+        85: "Kennen",
+        121: "Kha'Zix",
+        203: "Kindred",
+        240: "Kled",
+        96: "Kog'Maw",
+        7: "LeBlanc",
+        64: "Lee Sin",
+        89: "Leona",
+        876: "Lillia",
+        127: "Lissandra",
+        236: "Lucian",
+        117: "Lulu",
+        99: "Lux",
+        54: "Malphite",
+        90: "Malzahar",
+        57: "Maokai",
+        11: "Master Yi",
+        21: "Miss Fortune",
+        62: "Wukong",
+        82: "Mordekaiser",
+        25: "Morgana",
+        267: "Nami",
+        75: "Nasus",
+        111: "Nautilus",
+        518: "Neeko",
+        76: "Nidalee",
+        56: "Nocturne",
+        20: "Nunu & Willump",
+        2: "Olaf",
+        61: "Orianna",
+        516: "Ornn",
+        80: "Pantheon",
+        78: "Poppy",
+        555: "Pyke",
+        246: "Qiyana",
+        133: "Quinn",
+        497: "Rakan",
+        33: "Rammus",
+        421: "Rek'Sai",
+        526: "Rell",
+        58: "Renekton",
+        107: "Rengar",
+        92: "Riven",
+        68: "Rumble",
+        13: "Ryze",
+        360: "Samira",
+        113: "Sejuani",
+        235: "Senna",
+        147: "Seraphine",
+        875: "Sett",
+        35: "Shaco",
+        98: "Shen",
+        102: "Shyvana",
+        27: "Singed",
+        14: "Sion",
+        15: "Sivir",
+        72: "Skarner",
+        37: "Sona",
+        16: "Soraka",
+        50: "Swain",
+        517: "Sylas",
+        134: "Syndra",
+        223: "Tahm Kench",
+        163: "Taliyah",
+        91: "Talon",
+        44: "Taric",
+        17: "Teemo",
+        412: "Thresh",
+        18: "Tristana",
+        48: "Trundle",
+        23: "Tryndamere",
+        4: "Twisted Fate",
+        29: "Twitch",
+        77: "Udyr",
+        6: "Urgot",
+        110: "Varus",
+        67: "Vayne",
+        45: "Veigar",
+        161: "Vel'Koz",
+        711: "Vex",
+        254: "Vi",
+        234: "Viego",
+        112: "Viktor",
+        8: "Vladimir",
+        106: "Volibear",
+        19: "Warwick",
+        498: "Xayah",
+        101: "Xerath",
+        5: "Xin Zhao",
+        157: "Yasuo",
+        777: "Yone",
+        83: "Yorick",
+        350: "Yuumi",
+        154: "Zac",
+        238: "Zed",
+        115: "Ziggs",
+        26: "Zilean",
+        142: "Zoe",
+        143: "Zyra"
+    }
+
+    # Retourne le nom du champion correspondant à l'ID
+    return champions.get(champion_id, "Champion Inconnu")
+
+def get_champion_name_from_api(champion_id):
+    url = "https://ddragon.leagueoflegends.com/cdn/13.19.1/data/en_US/champion.json"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        champions_data = response.json()['data']
+        
+        for champion in champions_data.values():
+            if champion['key'] == str(champion_id):
+                return champion['name']
+    
+    return "Champion Unknown"
+
 # Fonction qui surveille les amis et envoie une notification sur Discord
 async def notify_if_friends_in_game():
     await bot.wait_until_ready()
@@ -103,17 +318,21 @@ async def notify_if_friends_in_game():
                 
             # Si l'ami est en jeu et qu'il ne l'était pas auparavant, on envoie une notification
             if in_game and not previously_in_game.get(summoner_name, False):
+                game_info_message = get_game_info(puuid)
+
                 await channel.send(
-                    f"------------------------------------------------------------------------------------------------------------\n\n"
+                    f"------------------------------------------------------------------------------------------------------------\n"
                     f"🌟 **Nouveau Match !** 🌟\n\n"
                     f"🎮 **{summoner_name}** vient de lancer une partie de **League of Legends** !\n\n"
-                    f"💰 **Vous pouvez parier dès maintenant avec la commande :** `??bet`\n\n"
+                    f"💰 **Vous pouvez parier dès maintenant avec la commande :** `??bet <nom_ami> <montant> <win/lose>`\n\n"
                     f"📊 **Cotes actuelles :**\n"
                     f"   **Victoire (Win)** : **{round((math.exp(2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - (2.5 * summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1), 2)}**\n"
                     f"   **Défaite (Lose)** : **{round((math.exp((2.5 * summoner_ratings.get(summoner_name, 0.5)) - 2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1), 2)}**\n\n"
                     f"⏳ **N'oubliez pas** : Les paris sont ouverts uniquement pendant **3 minutes** après le lancement du match !\n\n"
+                    f"{game_info_message}\n"
+                    f"------------------------------------------------------------------------------------------------------------"
                 )
-                
+
                 # Démarrer un chronomètre pour fermer les paris après 3 minutes
                 bet_timers[summoner_name] = time.time()
                 # Le summoner est en jeu    
@@ -207,7 +426,14 @@ async def update_summoner_ratings():
 @bot.event
 async def on_ready():
     print(f'{bot.user} est connecté à Discord !')
-    asyncio.create_task(notify_if_friends_in_game())  # Exécuter ces tâches en asynchrone
+
+    # Lancer la mise à jour des évaluations des invocateurs immédiatement
     asyncio.create_task(update_summoner_ratings())
+
+    # Attendre 30 secondes avant de lancer notify_if_friends_in_game (temporaire car tableau des joueurs déjà préétablit nécéssite d'attendre le rating)
+    await asyncio.sleep(30)
+    
+    # Lancer la notification des amis en jeu après le délai de 30 secondes
+    asyncio.create_task(notify_if_friends_in_game())
 
 bot.run(TOKEN)

@@ -68,7 +68,7 @@ async def lister(ctx):
     if not friends_list:
         await ctx.send("Il n'y a encore aucun ami.")
     else:
-        liste = "\n".join([f"{friend['name']}#{friend['tag']})" for friend in friends_list])
+        liste = "\n".join([f"{friend['name']}#{friend['tag']}" for friend in friends_list])
         await ctx.send(f"Voici la liste actuelle des amis : \n{liste}")
 
 @bot.command(name='bet', help="Parier sur la victoire ou la défaite d'un ami. Usage: ??bet <nom_ami> <montant> <win/lose>")

@@ -16,7 +16,7 @@ friends_list = [
     {'name': 'YoyoRapido', 'tag': 'RAPH', 'puuid': 'OhuKnL6B5T69Q3d6Z5qRik5f4Hh0H7L4RWbz7aPSHlX5lbkV_y9LLtSM8VsNiSEPJ5wMn5xBO0F_eQ', 'summoner_encryptedSummonerId': 'lmgfh_Xd-8Fh8OEajlv6Dej-NUodyKIfuyoUNPydtNjUjpQhwIPgj7VAgA'},
     {'name': 'CasusPlay', 'tag': 'K2ARS', 'puuid': 'djTO3H7lTeOBiGXn3lSh_XVxKpJ4hW4cx85jJ1eu0HLSqzLXcMaMU2CBDPO5uzFuXFtOxVVVkoQV8A', 'summoner_encryptedSummonerId': 'INIaFtgAT9vcZMagQH7yDyBYFAbBeHaqkqAmKovWkY53EYo'},
     {'name': 'V4L4KK', 'tag': 'EUW', 'puuid': 'ZlYej6PXXiuOmyJb59Y68c5qVREEtwQEHAlgqx1btBlp7tJlZ0LnUJ7vNIDpmAVFbcv7VeRXqn1Z4Q', 'summoner_encryptedSummonerId': 'NjZjIa-tScWhf_BcXwYuFx9emZl98AcUj_IXHFkNfd8NSYkH'},    
-    {'name': 'malstrom', 'tag': '2706', 'puuid': 'AoyFcA_7n0DQMHYxsMm62zE8KQ5ZlTSsYLhDPmuz1vNkvjB0-vMvczU9kq46hMmEzzt5qxdODETWSA', 'summoner_encryptedSummonerId': 'b5jD3-izcEHtQQrsl3AZpNevWd-vPeDz1Ff1VqHqQF90MzhZ'},     
+    {'name': 'Attaque Mortelle', 'tag': '5PAx2', 'puuid': 'jpPKPdZRpUKwPAtnnkk77O-6XYIzVlcXQbJoME3LLyPe5LkWyE9lJXxavLk93DFVPZBvYweajx5zhg', 'summoner_encryptedSummonerId': 'Y0WUQmIaTQbuoBhw_upGXGoWgKLhC3Jg324WSwPff7gDuTA'},     
     {'name': 'Yąnnøx', 'tag': 'EUW', 'puuid': '_vE1VE8mzUT-ijrHdKgDdLIGzwNBrKyrdAy-Qk9xDgmEXVrCYPdnjOBWNVy6ktRrVWyBylhWMUSQhw', 'summoner_encryptedSummonerId': '0pSZrBSoOMozgOb46PAkezKfH_XrUVbQX1ZvM-LssBYtVRK3'}
 ]
 
