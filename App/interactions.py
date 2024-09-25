@@ -42,7 +42,7 @@ async def afficher_aide(ctx):
     **??leaderboard** - Affiche le classement des meilleurs parieurs en fonction de leur nombre de jetons.
     Exemple : `??leaderboard`
 
-    **??daily** - Récupère 10 akhy coins une fois par jour. Après 10, 30 et 100 jours consécutifs de réclamations, tu peux recevoir un bonus unique de 50, 100 ou 1000 akhy coins respectivement.
+    **??daily** - Récupère 10 akhy coins une fois par jour. Après 10, 30 et 100 jours consécutifs, tu peux recevoir un bonus de 50, 100 ou 1000 akhy coins respectivement.
     Exemple : `??daily`
 
     **??aide** - Affiche cette aide détaillée.
