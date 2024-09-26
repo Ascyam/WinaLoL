@@ -142,7 +142,7 @@ async def afficher_ranking(ctx):
         for i, summoner in enumerate(ranked_friends, 1):
             tier = summoner['tier']
             icon = TIER_ICONS.get(tier, '')  # Récupérer l'icône du rang ou une chaîne vide si non trouvé
-            classement_message += f"{i}. **{summoner['name']}** - {icon} {tier} {summoner['rank']} ({summoner['lp']} LP)\n"
+            classement_message += f"{i}. **{summoner['name']}** - {icon} {tier} {summoner['rank']} ({summoner['lp']} LP) {icon}\n"
 
         await ctx.send(classement_message)
 
