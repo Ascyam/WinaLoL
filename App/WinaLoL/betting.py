@@ -25,21 +25,46 @@ def close_betting_for_summoner(summoner_name):
     if summoner_name in active_bets:
         active_bets[summoner_name]['closed'] = True  # Marque que les paris sont fermés pour cet ami
 
-# Placer un pari avec vérification de la fermeture des paris
-def place_bet(user_id, summoner_name, amount, choice):   
-    # Vérifier si le summoner joue
-    if summoner_name not in currently_ingame :
-        return False, "Le joueur ne joue pas."
+# Fonction pour récupérer le game_id du joueur en fonction de son nom
+def get_game_id_for_summoner(summoner_name):
+    for player in currently_ingame:
+        if player['summoner_name'] == summoner_name:
+            return player['game_id']
+    return None
 
+# Placer un pari avec vérification de la fermeture des paris
+def place_bet(user_id, summoner_name, amount, choice):
+    # Vérifier si le summoner joue
+    if not any(player['summoner_name'] == summoner_name for player in currently_ingame):
+        return False, "Le joueur ne joue pas."
+    
     # Vérifier si les paris sont déjà fermés
-    if summoner_name in currently_ingame and active_bets[summoner_name].get('closed', False):
+    if active_bets[summoner_name].get('closed', False):
         return False, "Les paris sont fermés pour cette partie."
+    
+    # Récupérer l'identifiant unique de la partie
+    game_id = get_game_id_for_summoner(summoner_name)
+
+    # Vérifier si le game_id est valide
+    if game_id is None:
+        return False, f"Impossible de trouver une partie active pour {summoner_name}."
+    
+    # Vérifier si l'utilisateur a déjà parié sur un autre joueur dans la même partie
+    for bet_summoner, bet_info in active_bets.items():
+        # Récupérer le game_id du joueur lié au pari
+        bet_game_id = get_game_id_for_summoner(bet_summoner)
+
+        # Vérifier si le joueur lié au pari est dans la même partie
+        if bet_game_id == game_id:
+            # Rechercher si l'utilisateur a déjà parié dans cette partie
+            if any(bet['user_id'] == user_id for bet in bet_info['win'] + bet_info['lose']):
+                return False, f"Tu as déjà parié sur un joueur dans cette partie ({bet_summoner})."
 
     # Vérifier le solde de l'utilisateur
     if get_balance(user_id) < amount:
         return False, "Solde insuffisant pour placer ce pari."
     
-    if 100000 < amount:
+    if amount > 100000:
         return False, "Tu ne peux parier que 100000 akhy coins maximum."
 
     # Retirer les coins de l'utilisateur
@@ -49,6 +74,7 @@ def place_bet(user_id, summoner_name, amount, choice):
     if summoner_name not in active_bets:
         active_bets[summoner_name] = {'win': [], 'lose': [], 'closed': False}  # Initialiser avec "closed" à False
         print(f"Summoner {summoner_name} ajouté dans active_bets.")
+
     # Enregistrer le pari
     active_bets[summoner_name][choice].append({'user_id': user_id, 'amount': amount})
 

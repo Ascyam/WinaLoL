@@ -51,12 +51,32 @@ async def afficher_aide(ctx):
 
 
 @bot.command(name='add_summoner', help="Ajoute un ami à la liste des idiots. Usage: ??add_summoner <nom> <tag>")
-async def ajouter_ami(ctx, summoner_name: str, tag_line: str):
+async def ajouter_ami(ctx, *args):
+    # Vérifier que le nombre d'arguments est suffisant (au moins 2 : nom et tag)
+    if len(args) < 2:
+        await ctx.send("Utilisation incorrecte. Usage: ??add_summoner <nom_composé> <tag>")
+        return
+
+    # Séparer le nom et le tag
+    summoner_name = " ".join(args[:-1])  # Le nom composé est tout sauf le dernier argument
+    tag_line = args[-1]  # Le dernier argument est le tag
+
+    # Ajout du joueur
     add_friend(summoner_name, tag_line)
     await ctx.send(f"Tentative d'ajout de {summoner_name}#{tag_line} à la liste des amis.")
 
 @bot.command(name='remove_summoner', help="Retire un ami de la liste des idiots. Usage: ??remove_summoner <nom> <tag>")
-async def supprimer_ami(ctx, summoner_name: str, tag_line: str):
+async def retirer_ami(ctx, *args):
+    # Vérifier que le nombre d'arguments est suffisant (au moins 2 : nom et tag)
+    if len(args) < 2:
+        await ctx.send("Utilisation incorrecte. Usage: ??remove_summoner <nom_composé> <tag>")
+        return
+
+    # Séparer le nom et le tag
+    summoner_name = " ".join(args[:-1])  # Le nom composé est tout sauf le dernier argument
+    tag_line = args[-1]  # Le dernier argument est le tag
+
+    # Retrait du joueur
     remove_friend(summoner_name, tag_line)
     await ctx.send(f"{summoner_name}#{tag_line} a été retiré de la liste des amis.")
 
@@ -73,12 +93,29 @@ async def lister(ctx):
 
 @bot.command(name='bet', help="Parier sur la victoire ou la défaite d'un ami. Usage: ??bet <nom_ami> <montant> <win/lose>")
 @commands.cooldown(rate=1, per=5.0, type=commands.BucketType.user)
-async def bet(ctx, friend_name: str, amount: int, choice: str):
-    user_id = str(ctx.author.id)
+async def bet(ctx, *args):
+    # Vérifier que le nombre d'arguments est suffisant (au moins 3)
+    if len(args) < 3:
+        await ctx.send("Utilisation incorrecte. Usage: ??bet <nom_ami> <montant> <win/lose>")
+        return
+
+    # Séparer le montant et le choix du reste des arguments
+    friend_name = " ".join(args[:-2])  # Les mots avant les 2 derniers sont le nom de l'ami
+    try:
+        amount = int(args[-2])  # L'avant-dernier argument est le montant
+    except ValueError:
+        await ctx.send("Le montant doit être un nombre valide.")
+        return
+    choice = args[-1].lower()  # Le dernier argument est le choix (win/lose)
+
+    # Vérifier si le choix est valide
     if choice not in ['win', 'lose']:
         await ctx.send("Choix invalide. Utilise 'win' ou 'lose'.")
         return
 
+    user_id = str(ctx.author.id)
+
+    # Appel à la fonction de placement de pari
     success, message = place_bet(user_id, friend_name, amount, choice)
     await ctx.send(message)
 
@@ -138,7 +175,7 @@ async def afficher_ranking(ctx):
         await ctx.send("Aucun invocateur surveillé n'a de classement Elo.")
     else:
         # Créer un joli message pour afficher les informations triées
-        classement_message = "**Classement Elo des invocateurs suivis (du meilleur au moins bon) :**\n"
+        classement_message = "**Classement Elo des invocateurs suivis :**\n"
         for i, summoner in enumerate(ranked_friends, 1):
             tier = summoner['tier']
             icon = TIER_ICONS.get(tier, '')  # Récupérer l'icône du rang ou une chaîne vide si non trouvé

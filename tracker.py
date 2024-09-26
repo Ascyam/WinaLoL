@@ -5,7 +5,6 @@ import os
 import time
 from App.WinaLoL.betting import close_betting_for_summoner, currently_ingame
 from dotenv import load_dotenv
-from discord.ext import commands
 from App.friends import *
 from App.interactions import *
 from App.WinaLoL.betting import *
@@ -99,6 +98,7 @@ def get_game_info(user_puuid):
         # Récupération du mode de jeu
         game_mode = game_data.get('gameMode', 'Inconnu')
         game_type = game_data.get('gameType', 'Inconnu')
+        game_id = game_data.get('gameId', 'Inconnu')
 
         # Récupération de la liste des joueurs et des champions choisis
         players = game_data.get('participants', [])
@@ -117,7 +117,7 @@ def get_game_info(user_puuid):
             f"{' - '.join(draft[:5])} (Équipe 1)\n\n"
             f"{' - '.join(draft[5:])} (Équipe 2)"
         )
-        return draft_message
+        return draft_message, game_id
 
     except Exception as e:
         return f"Erreur lors de la récupération des informations du match : {e}"
@@ -318,7 +318,7 @@ async def notify_if_friends_in_game():
                 
             # Si l'ami est en jeu et qu'il ne l'était pas auparavant, on envoie une notification
             if in_game and not previously_in_game.get(summoner_name, False):
-                game_info_message = get_game_info(puuid)
+                game_info_message, game_id = get_game_info(puuid)
 
                 await channel.send(
                     f"------------------------------------------------------------------------------------------------------------\n"
@@ -336,10 +336,12 @@ async def notify_if_friends_in_game():
                 # Démarrer un chronomètre pour fermer les paris après 3 minutes
                 bet_timers[summoner_name] = time.time()
                 # Le summoner est en jeu    
-                currently_ingame.append(summoner_name)
+                currently_ingame.append({
+                        'summoner_name': summoner_name,
+                        'game_id': game_id
+                    })
                  # Initialise les données associées au joueur
                 add_summoner_to_active_bets(summoner_name)
-
 
             if in_game and summoner_name in bet_timers:
                 elapsed_time = time.time() - bet_timers[summoner_name]
@@ -376,7 +378,7 @@ async def notify_if_friends_in_game():
                     remove_finished_bets(summoner_name)
 
                 # Le summoner n'est plus en jeu    
-                currently_ingame.remove(summoner_name)    
+                currently_ingame[:] = [player for player in currently_ingame if player['summoner_name'] != summoner_name]    
 
             # Met à jour l'état précédent
             previously_in_game[summoner_name] = in_game
