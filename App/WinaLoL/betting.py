@@ -36,7 +36,7 @@ def get_game_id_for_summoner(summoner_name):
 def place_bet(user_id, summoner_name, amount, choice):
     # Vérifier si le summoner joue
     if not any(player['summoner_name'] == summoner_name for player in currently_ingame):
-        return False, "Le joueur ne joue pas."
+        return False, "Le joueur ne joue pas ou tu n'as pas écrit correctement son pseudo."
     
     # Vérifier si les paris sont déjà fermés
     if active_bets[summoner_name].get('closed', False):
