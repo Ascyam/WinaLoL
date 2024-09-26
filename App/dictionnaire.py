@@ -1,4 +1,17 @@
 # Hiérarchie des tiers dans League of Legends
+TIER_ICONS = {
+    'CHALLENGER': '👑',   # Icône pour Challenger
+    'GRANDMASTER': '🏆',  # Icône pour Grandmaster
+    'MASTER': '🔱',       # Icône pour Master
+    'DIAMOND': '💎',      # Icône pour Diamond
+    'EMERALD': '🍀',      # Icône pour Emerald
+    'PLATINUM': '🏅',     # Icône pour Platinum
+    'GOLD': '🥇',         # Icône pour Gold
+    'SILVER': '🥈',       # Icône pour Silver
+    'BRONZE': '🥉',       # Icône pour Bronze
+    'IRON': '🚮'          # Icône pour Iron
+}
+
 TIER_ORDER = {
     'CHALLENGER': 10,
     'GRANDMASTER': 9,

@@ -140,7 +140,9 @@ async def afficher_ranking(ctx):
         # Créer un joli message pour afficher les informations triées
         classement_message = "**Classement Elo des invocateurs suivis (du meilleur au moins bon) :**\n"
         for i, summoner in enumerate(ranked_friends, 1):
-            classement_message += f"{i}. **{summoner['name']}** - {summoner['tier']} {summoner['rank']} ({summoner['lp']} LP)\n"
+            tier = summoner['tier']
+            icon = TIER_ICONS.get(tier, '')  # Récupérer l'icône du rang ou une chaîne vide si non trouvé
+            classement_message += f"{i}. **{summoner['name']}** - {icon} {tier} {summoner['rank']} ({summoner['lp']} LP)\n"
 
         await ctx.send(classement_message)
 
