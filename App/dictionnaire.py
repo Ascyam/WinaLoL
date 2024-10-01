@@ -32,3 +32,14 @@ RANK_ORDER = {
     'III': 2,
     'IV': 1
 }
+
+# Listes des régions acceptées
+VALID_REGION_LOL = ['euw1', 'na1', 'kr', 'eun1', 'jp1', 'br1', 'oc1', 'ru', 'tr1', 'la1', 'la2', 'me1', 'ph2', 'sg2', 'th2', 'tw2', 'vn2']
+VALID_REGION_RIOT = ['americas', 'europe', 'asia', 'esports']
+
+CONFIG = {
+    'REGION_Riot': 'europe',
+    'REGION_Lol': 'euw1',
+    'CHANNEL': 'général',
+    'ROLE': 'Gambler'
+}

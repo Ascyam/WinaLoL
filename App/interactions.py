@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
 from .friends import add_friend, remove_friend, get_friends_list, get_summoner_rank
-from .WinaLoL.betting import place_bet, get_active_bets
+from .WinaLoL.betting import active_bets, place_bet, get_active_bets, currently_ingame
 from .WinaLoL.wallet import get_balance, add_coins, user_wallets
 from .dictionnaire import *
 
@@ -10,6 +10,9 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True 
 bot = commands.Bot(command_prefix="??", intents=intents)
+
+# Variable globale pour suivre si la configuration a été effectuée
+config_initialized = False
 
 user_claim_data  = {}
 
@@ -30,11 +33,14 @@ async def afficher_aide(ctx):
     **??bet <nom_ami> <montant> <win/lose>** - Parie des akhy coins sur la victoire ou la défaite d'un ami.
     Exemple : `??bet YoyoRapido 50 win`
 
+    **??bet_options** - Affiche l'état actuel des paris.
+    Exemple : `??bet_options`
+
     **??balance** - Affiche ton solde actuel d'akhy coins.
     Exemple : `??balance`
 
-    **??active_bets** - Affiche la liste des paris encore actifs, du plus gros au plus petit, jusqu'à 20 paris.
-    Exemple : `??active_bets`
+    **??current_bets** - Affiche la liste des paris encore actifs, du plus gros au plus petit, jusqu'à 20 paris.
+    Exemple : `??current_bets`
 
     **??rankings** - Affiche le classement Elo des invocateurs suivis du meilleur au moins bon.
     Exemple : `??rankings`
@@ -45,10 +51,12 @@ async def afficher_aide(ctx):
     **??daily** - Récupère 10 akhy coins une fois par jour. Après 10, 30 et 100 jours consécutifs, tu peux recevoir un bonus de 50, 100 ou 1000 akhy coins respectivement.
     Exemple : `??daily`
 
+    **??show_config** - Affiche les paramètres de configuration actuels du bot.
+    Exemple : `??show_config`
+
     **??aide** - Affiche cette aide détaillée.
     """
     await ctx.send(aide_message)
-
 
 @bot.command(name='add_summoner', help="Ajoute un ami à la liste des idiots. Usage: ??add_summoner <nom> <tag>")
 async def ajouter_ami(ctx, *args):
@@ -125,8 +133,8 @@ async def balance(ctx):
     balance = get_balance(user_id)
     await ctx.send(f"Tu as {balance} akhy coins.")
 
-@bot.command(name='active_bets', help="Affiche les 20 plus gros paris encore actifs.")
-async def active_bets(ctx):
+@bot.command(name='current_bets', help="Affiche les 20 plus gros paris encore actifs.")
+async def current_bets(ctx):
     active_bets_list = get_active_bets()
     
     if not active_bets_list:
@@ -266,3 +274,26 @@ async def daily(ctx):
         hours, remainder = divmod(time_remaining.seconds, 3600)
         minutes, _ = divmod(remainder, 60)
         await ctx.send(f"Tu as déjà récupéré tes jetons aujourd'hui. Reviens dans {hours}h{minutes}m.")
+
+@bot.command(name='bet_options', help="Affiche l'état actuel des paris.")
+async def bet_options(ctx):
+    possible_bets_message = "**État des paris en cours :**\n"
+
+    if not currently_ingame:
+        await ctx.send("Aucun ami ne joue actuellement.")
+        return
+
+    # Vérifier les paris actifs et possibles
+    for friend in active_bets:
+        # Vérifier si les paris sont ouverts pour ce joueur
+        if not active_bets[friend].get('closed', False):
+            possible_bets_message += f"- {friend} : Les paris sont ouverts\n"
+        else:
+            possible_bets_message += f"- {friend} : Les paris sont fermés.\n"
+
+    await ctx.send(possible_bets_message)
+
+@bot.command(name='show_config', help="Affiche les paramètres actuels du bot.")
+async def show_config(ctx):
+    config_message = "\n".join([f"**{key}**: {value}" for key, value in CONFIG.items()])
+    await ctx.send(f"**Configuration actuelle du bot :**\n{config_message}")

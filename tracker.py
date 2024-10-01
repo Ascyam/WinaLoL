@@ -17,7 +17,7 @@ RIOT_API_KEY = os.getenv('RIOT_API_KEY')
 # Vérifier si l'ami est en jeu
 def is_friend_in_game(riot_puuid):
     try:
-        game_url = f"https://{REGION_Lol}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/{riot_puuid}?api_key={RIOT_API_KEY}"
+        game_url = f"https://{CONFIG['REGION_Lol']}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/{riot_puuid}?api_key={RIOT_API_KEY}"
         headers = {
             "X-Riot-Token": RIOT_API_KEY
         }
@@ -35,7 +35,7 @@ def is_friend_in_game(riot_puuid):
         return None
 
 def get_match_history(riot_puuid):
-    match_history_url = f"https://{REGION_Riot}.api.riotgames.com/lol/match/v5/matches/by-puuid/{riot_puuid}/ids?api_key={RIOT_API_KEY}"
+    match_history_url = f"https://{CONFIG['REGION_Riot']}.api.riotgames.com/lol/match/v5/matches/by-puuid/{riot_puuid}/ids?api_key={RIOT_API_KEY}"
     
     headers = {
         "X-Riot-Token": RIOT_API_KEY
@@ -47,7 +47,7 @@ def get_match_history(riot_puuid):
     return None
 
 def get_game_result(riot_puuid, match_id):
-    match_url = f"https://{REGION_Riot}.api.riotgames.com/lol/match/v5/matches/{match_id}?api_key={RIOT_API_KEY}"
+    match_url = f"https://{CONFIG['REGION_Riot']}.api.riotgames.com/lol/match/v5/matches/{match_id}?api_key={RIOT_API_KEY}"
     
     headers = {
         "X-Riot-Token": RIOT_API_KEY
@@ -86,7 +86,7 @@ def calculate_winrate(puuid):
 
 def get_game_info(user_puuid):
     # URL pour obtenir les infos du match via l'API Spectator de Riot
-    game_url = f"https://{REGION_Lol}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/{user_puuid}?api_key={RIOT_API_KEY}"
+    game_url = f"https://{CONFIG['REGION_Lol']}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/{user_puuid}?api_key={RIOT_API_KEY}"
 
     try:
         response = requests.get(game_url)
@@ -303,9 +303,11 @@ def get_champion_name_from_api(champion_id):
 # Fonction qui surveille les amis et envoie une notification sur Discord
 async def notify_if_friends_in_game():
     await bot.wait_until_ready()
-    channel = discord.utils.get(bot.get_all_channels(), name=CHANNEL)  # Le nom du channel Discord
+    channel = discord.utils.get(bot.get_all_channels(), name=CONFIG['CHANNEL'])  # Le nom du channel Discord
     previously_in_game = {}  # Dictionnaire pour suivre l'état des amis
     bet_timers = {}  # Dictionnaire pour suivre le temps des paris pour chaque ami
+    
+    gambler_ping_message = await ping_gambler_role(channel)
 
     while not bot.is_closed():
         friends_list = get_friends_list()  # Récupérer la liste des amis à chaque boucle
@@ -322,7 +324,7 @@ async def notify_if_friends_in_game():
 
                 await channel.send(
                     f"------------------------------------------------------------------------------------------------------------\n"
-                    f"🌟 **Nouveau Match !** 🌟\n\n"
+                    f"🌟 **{gambler_ping_message}** 🌟\n\n"
                     f"🎮 **{summoner_name}** vient de lancer une partie de **League of Legends** !\n\n"
                     f"💰 **Vous pouvez parier dès maintenant avec la commande :** `??bet <nom_ami> <montant> <win/lose>`\n\n"
                     f"📊 **Cotes actuelles :**\n"
@@ -434,7 +436,7 @@ async def on_ready():
 
     # Attendre 30 secondes avant de lancer notify_if_friends_in_game (temporaire car tableau des joueurs déjà préétablit nécéssite d'attendre le rating)
     await asyncio.sleep(30)
-    
+
     # Lancer la notification des amis en jeu après le délai de 30 secondes
     asyncio.create_task(notify_if_friends_in_game())
 

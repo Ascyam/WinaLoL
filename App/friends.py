@@ -1,15 +1,14 @@
 import requests
 import os
+import discord
+from .dictionnaire import *
 from dotenv import load_dotenv
 
 load_dotenv()  # Charger les variables d'environnement
 
 # Clés et configuration Riot
 RIOT_API_KEY = os.getenv('RIOT_API_KEY')
-
-REGION_Riot = 'europe'
-REGION_Lol = 'euw1' 
-CHANNEL = 'général' 
+MAX_SUMMONERS = 30  # Limite de 30 invocateurs
 
 # Liste initiale
 friends_list = [
@@ -27,7 +26,7 @@ def get_friends_list():
 # Fonction pour récupérer le PUUID via l'API Riot
 def get_summoner_puuid(summoner_name, tag_line):
     try:
-        riotAccount_url = f"https://{REGION_Riot}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{summoner_name}/{tag_line}?api_key={RIOT_API_KEY}"
+        riotAccount_url = f"https://{CONFIG['REGION_Riot']}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{summoner_name}/{tag_line}?api_key={RIOT_API_KEY}"
         headers = {
             "X-Riot-Token": RIOT_API_KEY
         }
@@ -45,7 +44,7 @@ def get_summoner_puuid(summoner_name, tag_line):
 # Fonction pour récupérer l'encryptedSummonerId via l'API Riot   
 def get_summoner_encryptedSummonerId(puuid):
     try:
-        riotAccount_url = f"https://{REGION_Lol}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}?api_key={RIOT_API_KEY}"
+        riotAccount_url = f"https://{CONFIG['REGION_Lol']}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}?api_key={RIOT_API_KEY}"
         headers = {
             "X-Riot-Token": RIOT_API_KEY
         }
@@ -62,6 +61,11 @@ def get_summoner_encryptedSummonerId(puuid):
 
 # Ajout d'un summoner_id et de son PUUID
 def add_friend(summoner_name, tag_line):
+    # Vérifier si la limite de 30 invocateurs est atteinte
+    if len(friends_list) >= MAX_SUMMONERS:
+        print(f"Tu ne peux pas ajouter plus de {MAX_SUMMONERS} invocateurs. Supprime-en un avant d'en ajouter un autre.")
+        return
+    
     # Vérifie que l'ami n'existe pas déjà
     if not any(f['name'] == summoner_name and f['tag'] == tag_line for f in friends_list):
         puuid = get_summoner_puuid(summoner_name, tag_line)
@@ -84,7 +88,7 @@ def remove_friend(summoner_name, tag_line):
 def get_summoner_rank(summoner_encryptedSummonerId):
     try:
         # URL pour récupérer les informations de classement d'un invocateur
-        rank_url = f"https://{REGION_Lol}.api.riotgames.com/lol/league/v4/entries/by-summoner/{summoner_encryptedSummonerId}?api_key={RIOT_API_KEY}"
+        rank_url = f"https://{CONFIG['REGION_Lol']}.api.riotgames.com/lol/league/v4/entries/by-summoner/{summoner_encryptedSummonerId}?api_key={RIOT_API_KEY}"
         headers = {
             "X-Riot-Token": RIOT_API_KEY
         }
@@ -104,3 +108,16 @@ def get_summoner_rank(summoner_encryptedSummonerId):
     except Exception as e:
         print(f"Erreur lors de la récupération du rang pour {summoner_encryptedSummonerId}: {e}")
         return None
+    
+
+async def ping_gambler_role(channel):
+    # Recherche du rôle dans le serveur
+    guild = channel.guild  # Récupère le serveur (guild) où le canal existe
+    gambler_role = discord.utils.get(guild.roles, name=CONFIG['ROLE'])
+    
+    # Vérification si le rôle existe
+    if gambler_role is not None:
+        return f"{gambler_role.mention} Nouveau match !"
+    else:
+        print("Le rôle 'Gambler' n'a pas été trouvé sur ce serveur.")
+        return ""
