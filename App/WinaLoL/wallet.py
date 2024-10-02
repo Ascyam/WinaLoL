@@ -15,9 +15,12 @@ def initialize_user(user_id):
 # Fonction pour ajouter des akhy coins à un utilisateur
 def add_coins(user_id, amount):
     initialize_user(user_id)  # S'assurer que l'utilisateur est initialisé
-    user_wallets[user_id] += amount
-    print(f"{amount} akhy coins ont été ajoutés à {user_id}. Total: {user_wallets[user_id]}")
-
+    if (user_wallets[user_id] + amount) < 2**62 :
+        user_wallets[user_id] += amount
+        print(f"{amount} akhy coins ont été ajoutés à {user_id}. Total: {user_wallets[user_id]}")
+    else :
+        print(f"{user_id} a atteint la limite de Akhy coins")
+    
 # Fonction pour retirer des akhy coins à un utilisateur
 def remove_coins(user_id, amount):
     initialize_user(user_id)  # S'assurer que l'utilisateur est initialisé

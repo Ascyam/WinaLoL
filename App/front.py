@@ -9,7 +9,7 @@ async def ping_gambler_role(channel):
     
     # Vérification si le rôle existe
     if gambler_role is not None:
-        return f"{gambler_role.mention} Nouveau match !"
+        return f"{gambler_role.mention} faites vos jeux !"
     else:
         print("Le rôle 'Gambler' n'a pas été trouvé sur ce serveur.")
         return ""
@@ -47,5 +47,49 @@ async def afficher_resultat_partie(channel, summoner_name, result, winners, lose
 
     embed.set_footer(text="Partie terminée")
     
+    # Envoyer l'embed au channel
+    await channel.send(embed=embed)
+
+async def afficher_lancement_partie(channel, summoner_name, summoner_ratings, gambler_ping_message, game_info_message, bot):
+    # Calcul des cotes
+    cote_win = round((math.exp(2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - (2.5 * summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1), 2)
+    cote_lose = round((math.exp((2.5 * summoner_ratings.get(summoner_name, 0.5)) - 2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1), 2)
+
+    # Création de l'embed pour l'annonce du lancement de la partie
+    embed = discord.Embed(
+        title="🎮 Nouveau Match en cours !",
+        description=f"🎲 **{gambler_ping_message}** 🎲",
+        color=discord.Color.blue()
+    )
+
+    # Ajouter le nom du joueur qui a lancé la partie
+    embed.add_field(
+        name="Invocateur en jeu",
+        value=f"**{summoner_name}** vient de lancer une partie de **League of Legends** !",
+        inline=False
+    )
+
+    # Ajouter les cotes de pari
+    embed.add_field(
+        name="Cotes actuelles",
+        value=f"Victoire (Win) : **{cote_win}**\nDéfaite (Lose) : **{cote_lose}**",
+        inline=False
+    )
+
+    # Rappel des paris
+    embed.add_field(
+        name="Pariez maintenant !",
+        value=f"💰 **Utilisez la commande :** `??bet <nom_ami> <montant> <win/lose>`\n"
+              f"⏳ **Les paris sont ouverts pendant 3 minutes !**",
+        inline=False
+    )
+
+    # Ajouter les informations de jeu (mode de jeu, équipes, etc.)
+    embed.add_field(
+        name="Informations sur la partie",
+        value=game_info_message,
+        inline=False
+    )
+
     # Envoyer l'embed au channel
     await channel.send(embed=embed)

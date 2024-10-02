@@ -323,18 +323,8 @@ async def notify_if_friends_in_game():
             if in_game and not previously_in_game.get(summoner_name, False):
                 game_info_message, game_id = get_game_info(puuid)
 
-                await channel.send(
-                    f"------------------------------------------------------------------------------------------------------------\n"
-                    f"🌟 **{gambler_ping_message}** 🌟\n\n"
-                    f"🎮 **{summoner_name}** vient de lancer une partie de **League of Legends** !\n\n"
-                    f"💰 **Vous pouvez parier dès maintenant avec la commande :** `??bet <nom_ami> <montant> <win/lose>`\n\n"
-                    f"📊 **Cotes actuelles :**\n"
-                    f"   **Victoire (Win)** : **{round((math.exp(2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - (2.5 * summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1), 2)}**\n"
-                    f"   **Défaite (Lose)** : **{round((math.exp((2.5 * summoner_ratings.get(summoner_name, 0.5)) - 2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1), 2)}**\n\n"
-                    f"⏳ **N'oubliez pas** : Les paris sont ouverts uniquement pendant **3 minutes** après le lancement du match !\n\n"
-                    f"{game_info_message}\n"
-                    f"------------------------------------------------------------------------------------------------------------"
-                )
+                # Appel à la fonction pour afficher le message d'annonce du lancement de partie
+                await afficher_lancement_partie(channel, summoner_name, summoner_ratings, gambler_ping_message, game_info_message, bot)
 
                 # Démarrer un chronomètre pour fermer les paris après 3 minutes
                 bet_timers[summoner_name] = time.time()
@@ -360,20 +350,11 @@ async def notify_if_friends_in_game():
                 result = get_game_result(puuid, history[0])
 
                 if result:
-                    await channel.send(f"{summoner_name} a terminé une partie. Résultat : {'Victoire' if result == 'win' else 'Défaite'}.")
                     winners, losers = distribute_gains(summoner_name, result)
 
-                    for winner in winners:
-                        user = await bot.fetch_user(winner['user_id'])  # Récupérer l'utilisateur Discord
-                        if result == 'win' :
-                            await channel.send(f"{user.mention} a récupéré {int(winner['amount'] * (math.exp(2.5*(1-summoner_ratings.get(summoner_name, 0.5)) - (2.5*summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1))} akhy coins grâce à {summoner_name}.")
-                        else :
-                            await channel.send(f"{user.mention} a récupéré {int(winner['amount'] * (math.exp((2.5*summoner_ratings.get(summoner_name, 0.5)) - 2.5*(1-summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1))} akhy coins grâce à {summoner_name}.")
+                    # Appel à la nouvelle fonction pour afficher les résultats
+                    await afficher_resultat_partie(channel, summoner_name, result, winners, losers, summoner_ratings, bot)
 
-                    for loser in losers:
-                        user = await bot.fetch_user(loser['user_id'])  # Récupérer l'utilisateur Discord
-                        await channel.send(f"{user.mention} a perdu son pari à cause {summoner_name}.")
-                    
                     print(f"Gagnants : {winners}")
                     print(f"Perdants : {losers}")
 
