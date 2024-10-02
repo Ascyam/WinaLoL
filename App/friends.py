@@ -108,16 +108,3 @@ def get_summoner_rank(summoner_encryptedSummonerId):
     except Exception as e:
         print(f"Erreur lors de la récupération du rang pour {summoner_encryptedSummonerId}: {e}")
         return None
-    
-
-async def ping_gambler_role(channel):
-    # Recherche du rôle dans le serveur
-    guild = channel.guild  # Récupère le serveur (guild) où le canal existe
-    gambler_role = discord.utils.get(guild.roles, name=CONFIG['ROLE'])
-    
-    # Vérification si le rôle existe
-    if gambler_role is not None:
-        return f"{gambler_role.mention} Nouveau match !"
-    else:
-        print("Le rôle 'Gambler' n'a pas été trouvé sur ce serveur.")
-        return ""

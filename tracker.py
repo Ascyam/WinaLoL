@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from App.friends import *
 from App.interactions import *
 from App.WinaLoL.betting import *
+from App.front import *
 
 load_dotenv()  # Charger les variables d'environnement
 
