@@ -17,8 +17,7 @@ async def ping_gambler_role(channel):
 async def afficher_resultat_partie(channel, summoner_name, result, winners, losers, summoner_ratings, bot):
     # Création de l'embed pour le résultat de la partie
     embed = discord.Embed(
-        title="Game results",
-        description="**Victory**" if result == 'win' else "**Defeat**",
+        title="🎮 Game results",
         color=discord.Color.green() if result == 'win' else discord.Color.red()
     )
     
@@ -34,7 +33,7 @@ async def afficher_resultat_partie(channel, summoner_name, result, winners, lose
         gain_text += f"{user.mention} a gagné {gain_amount} akhy coins.\n"
     
     if gain_text:
-        embed.add_field(name="Winners", value=gain_text, inline=False)
+        embed.add_field(name="🤑 Winners", value=gain_text, inline=False)
 
     # Liste des perdants
     loss_text = ""
@@ -43,14 +42,14 @@ async def afficher_resultat_partie(channel, summoner_name, result, winners, lose
         loss_text += f"{user.mention} a perdu son pari.\n"
     
     if loss_text:
-        embed.add_field(name="Losers", value=loss_text, inline=False)
+        embed.add_field(name="😢 Losers", value=loss_text, inline=False)
 
     embed.set_footer(text="Partie terminée")
     
     # Envoyer l'embed au channel
     await channel.send(embed=embed)
 
-async def afficher_lancement_partie(channel, summoner_name, summoner_ratings, gambler_ping_message, game_info_message, bot):
+async def afficher_lancement_partie(channel, summoner_name, summoner_ratings, gambler_ping_message, game_mode, game_type, draft):
     # Calcul des cotes
     cote_win = round((math.exp(2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - (2.5 * summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1), 2)
     cote_lose = round((math.exp((2.5 * summoner_ratings.get(summoner_name, 0.5)) - 2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1), 2)
@@ -84,11 +83,23 @@ async def afficher_lancement_partie(channel, summoner_name, summoner_ratings, ga
         inline=False
     )
 
-    # Ajouter les informations de jeu (mode de jeu, équipes, etc.)
+    # Ajout des informations sur le mode de jeu
     embed.add_field(
-        name="Informations sur la partie",
-        value=game_info_message,
+        name="Mode de jeu",
+        value=f"{game_mode} ({game_type})",
         inline=False
+    )
+
+    # Structuration de la draft en deux colonnes (équipes 1 et 2)
+    embed.add_field(
+        name="Équipe 1",
+        value="\n".join(draft[:5]),  # Liste des joueurs de l'équipe 1
+        inline=True
+    )
+    embed.add_field(
+        name="Équipe 2",
+        value="\n".join(draft[5:]),  # Liste des joueurs de l'équipe 2
+        inline=True
     )
 
     # Envoyer l'embed au channel
