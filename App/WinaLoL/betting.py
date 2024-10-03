@@ -29,7 +29,7 @@ def close_betting_for_summoner(summoner_name):
 def get_game_id_for_summoner(summoner_name):
     for player in currently_ingame:
         if player['summoner_name'] == summoner_name:
-            return player['game_id']
+            return player['game_id'], player['gameQueueConfigId']
     return None
 
 # Placer un pari avec vérification de la fermeture des paris
@@ -43,11 +43,18 @@ def place_bet(user_id, summoner_name, amount, choice):
         return False, "Les paris sont fermés pour cette partie."
     
     # Récupérer l'identifiant unique de la partie
-    game_id = get_game_id_for_summoner(summoner_name)
+    game_id, gameQueueConfigId = get_game_id_for_summoner(summoner_name)
 
     # Vérifier si le game_id est valide
     if game_id is None:
         return False, f"Impossible de trouver une partie active pour {summoner_name}."
+    
+    # Vérifier le type de gameQueueConfigId pour s'assurer que la partie est pariable
+    allowed_game_modes = {400, 420, 430, 440, 450, 700, 900, 1020, 1200, 1400}
+    game_queue_id = gameQueueConfigId
+
+    if game_queue_id not in allowed_game_modes:
+        return False, "Cette partie n'est pas pariable en raison du mode de jeu."
     
     # Vérifier si l'utilisateur a déjà parié sur un autre joueur dans la même partie
     for bet_summoner, bet_info in active_bets.items():
@@ -99,9 +106,9 @@ def distribute_gains(friend_name, result):
     # Répartir les gains : on multiplie la mise gagnée 
     for winner in winners:
         if result == 'win':
-            winnings = int(winner['amount'] * (math.exp(2.5*(1-odds) - (2.5*odds) - 0.2) + 1))
+            winnings = int(winner['amount'] * (math.exp(2.5*(1-odds) - (2.5*odds) - 0.15) + 1))
         else:
-            winnings = int(winner['amount'] * (math.exp((2.5*odds) - 2.5*(1-odds) - 0.2) + 1))
+            winnings = int(winner['amount'] * (math.exp((2.5*odds) - 2.5*(1-odds) - 0.15) + 1))
 
         add_coins(winner['user_id'], winnings)
         print(f"{winner['user_id']} a gagné {winnings} akhy coins grâce à {friend_name}.")

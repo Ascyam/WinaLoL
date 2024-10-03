@@ -29,7 +29,7 @@ async def afficher_resultat_partie(channel, summoner_name, result, winners, lose
     gain_text = ""
     for winner in winners:
         user = await bot.fetch_user(winner['user_id'])  # Récupérer l'utilisateur Discord
-        gain_amount = int(winner['amount'] * (math.exp(2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - (2.5 * summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1)) if result == 'win' else int(winner['amount'] * (math.exp((2.5 * summoner_ratings.get(summoner_name, 0.5)) - 2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1))
+        gain_amount = int(winner['amount'] * (math.exp(2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - (2.5 * summoner_ratings.get(summoner_name, 0.5)) - 0.15) + 1)) if result == 'win' else int(winner['amount'] * (math.exp((2.5 * summoner_ratings.get(summoner_name, 0.5)) - 2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - 0.15) + 1))
         gain_text += f"{user.mention} a gagné {gain_amount} akhy coins.\n"
     
     if gain_text:
@@ -49,10 +49,10 @@ async def afficher_resultat_partie(channel, summoner_name, result, winners, lose
     # Envoyer l'embed au channel
     await channel.send(embed=embed)
 
-async def afficher_lancement_partie(channel, summoner_name, summoner_ratings, gambler_ping_message, game_mode, game_type, draft):
+async def afficher_lancement_partie(channel, summoner_name, summoner_ratings, gambler_ping_message, gameQueueConfigId, draft):
     # Calcul des cotes
-    cote_win = round((math.exp(2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - (2.5 * summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1), 2)
-    cote_lose = round((math.exp((2.5 * summoner_ratings.get(summoner_name, 0.5)) - 2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - 0.2) + 1), 2)
+    cote_win = round((math.exp(2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - (2.5 * summoner_ratings.get(summoner_name, 0.5)) - 0.15) + 1), 2)
+    cote_lose = round((math.exp((2.5 * summoner_ratings.get(summoner_name, 0.5)) - 2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - 0.15) + 1), 2)
 
     # Création de l'embed pour l'annonce du lancement de la partie
     embed = discord.Embed(
@@ -86,7 +86,7 @@ async def afficher_lancement_partie(channel, summoner_name, summoner_ratings, ga
     # Ajout des informations sur le mode de jeu
     embed.add_field(
         name="Mode de jeu",
-        value=f"{game_mode} ({game_type})",
+        value=get_game_mode_display(gameQueueConfigId),
         inline=False
     )
 
@@ -104,3 +104,22 @@ async def afficher_lancement_partie(channel, summoner_name, summoner_ratings, ga
 
     # Envoyer l'embed au channel
     await channel.send(embed=embed)
+
+def get_game_mode_display(gameQueueConfigId):
+    queue_mapping = {
+        400: "Normal Draft",
+        420: "Ranked Solo/Duo",
+        430: "Normal Blind",
+        440: "Ranked Flex",
+        450: "ARAM",
+        700: "Clash",
+        830: "Co-op vs. AI (Beginner)",
+        840: "Co-op vs. AI (Intermediate)",
+        850: "Co-op vs. AI (Intro)",
+        900: "URF",
+        1020: "One for All",
+        1200: "Nexus Blitz",
+        1400: "Ultimate Spellbook",
+        # Add more mappings as needed
+    }
+    return queue_mapping.get(gameQueueConfigId, "Unknown Queue Type")

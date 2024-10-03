@@ -98,7 +98,7 @@ def get_game_info(user_puuid):
 
         # Récupération du mode de jeu
         game_mode = game_data.get('gameMode', 'Inconnu')
-        game_type = game_data.get('gameType', 'Inconnu')
+        gameQueueConfigId = game_data.get('gameQueueConfigId', 'Inconnu')
         game_id = game_data.get('gameId', 'Inconnu')
 
         # Récupération de la liste des joueurs et des champions choisis
@@ -111,7 +111,7 @@ def get_game_info(user_puuid):
             champion_name = get_champion_name_from_api(champion_id)  
             draft.append(f"🔹 {summoner_name} - **{champion_name}**")
 
-        return game_mode, game_type, draft, game_id
+        return game_mode, gameQueueConfigId, draft, game_id
 
     except Exception as e:
         return f"Erreur lors de la récupération des informations du match : {e}"
@@ -149,17 +149,18 @@ async def notify_if_friends_in_game():
                 
             # Si l'ami est en jeu et qu'il ne l'était pas auparavant, on envoie une notification
             if in_game and not previously_in_game.get(summoner_name, False):
-                game_mode, game_type, draft, game_id = get_game_info(puuid)
+                game_mode, gameQueueConfigId, draft, game_id = get_game_info(puuid)
 
                 # Appel à la fonction pour afficher le message d'annonce du lancement de partie
-                await afficher_lancement_partie(channel, summoner_name, summoner_ratings, gambler_ping_message, game_mode, game_type, draft)
+                await afficher_lancement_partie(channel, summoner_name, summoner_ratings, gambler_ping_message, gameQueueConfigId, draft)
 
                 # Démarrer un chronomètre pour fermer les paris après 3 minutes
                 bet_timers[summoner_name] = time.time()
                 # Le summoner est en jeu    
                 currently_ingame.append({
                         'summoner_name': summoner_name,
-                        'game_id': game_id
+                        'game_id': game_id,
+                        'gameQueueConfigId': gameQueueConfigId
                     })
                  # Initialise les données associées au joueur
                 add_summoner_to_active_bets(summoner_name)

@@ -40,6 +40,6 @@ VALID_REGION_RIOT = ['americas', 'europe', 'asia', 'esports']
 CONFIG = {
     'REGION_Riot': 'europe',
     'REGION_Lol': 'euw1',
-    'CHANNEL': 'général',
+    'CHANNEL': 'winalol',
     'ROLE': 'Gambler'
 }
