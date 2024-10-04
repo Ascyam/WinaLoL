@@ -117,7 +117,11 @@ def get_game_info(user_puuid):
         return f"Erreur lors de la récupération des informations du match : {e}"
 
 def get_champion_name_from_api(champion_id):
-    url = "https://ddragon.leagueoflegends.com/cdn/14.19.1/data/en_US/champion.json"
+    ddragon = "https://ddragon.leagueoflegends.com/api/versions.json"
+    response_dd = requests.get(ddragon)
+    version = response_dd.json()[0]
+
+    url = f"https://ddragon.leagueoflegends.com/cdn/{version}/data/en_US/champion.json"
     response = requests.get(url)
     
     if response.status_code == 200:
