@@ -1,18 +1,16 @@
 import discord
 import requests
 import asyncio
-import os
 import time
-from App.WinaLoL.betting import close_betting_for_summoner, currently_ingame
+import os
 from dotenv import load_dotenv
-from App.friends import *
-from App.interactions import *
-from App.WinaLoL.betting import *
-from App.front import *
+from .WinaLoL.betting import close_betting_for_summoner, currently_ingame
+from .friends import *
+from .interactions import *
+from .WinaLoL.betting import *
+from .front import *
 
 load_dotenv()  # Charger les variables d'environnement
-
-TOKEN = os.getenv('TOKEN')
 RIOT_API_KEY = os.getenv('RIOT_API_KEY')
 
 # Vérifier si l'ami est en jeu
@@ -83,7 +81,7 @@ def calculate_winrate(puuid):
         wins = results.count("win")  # Compte les victoires
         winrate = wins / len(results)  # Calcul du winrate
         return winrate
-    return 0  # Retourne 0 si aucun résultat n'est disponible
+    return 0.5  # Retourne 0.5 si aucun résultat n'est disponible
 
 def get_game_info(user_puuid):
     # URL pour obtenir les infos du match via l'API Spectator de Riot
@@ -115,6 +113,66 @@ def get_game_info(user_puuid):
 
     except Exception as e:
         return f"Erreur lors de la récupération des informations du match : {e}"
+    
+def calculate_match_ranks(riot_id):
+    # URL pour récupérer les informations de la partie
+    match_url = f"https://{CONFIG['REGION_Lol']}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/{riot_id}?api_key={RIOT_API_KEY}"
+    headers = {
+        "X-Riot-Token": RIOT_API_KEY
+    }
+    
+    response = requests.get(match_url, headers=headers)
+    
+    if response.status_code != 200:
+        return None, "Erreur lors de la récupération de la partie"
+    
+    match_data = response.json()
+
+    # Séparer les équipes
+    team_1 = []
+    team_2 = []
+    team_summoner = None  # Initialise la variable avant de l'utiliser
+    
+    for participant in match_data['participants']:
+        summoner_id = participant['puuid']
+        encryptedId = participant['summonerId']
+        summoner_rank = get_summoner_rank(encryptedId)
+
+        if summoner_rank is None:
+            continue  # Si le rang n'est pas trouvé, on ignore ce joueur
+        
+        # Ajouter les joueurs à leur équipe respective
+        if participant['teamId'] == 100:
+            team_1.append(summoner_rank)
+        else:
+            team_2.append(summoner_rank)
+
+        if summoner_id == riot_id :
+            team_summoner = participant['teamId']
+
+    if team_summoner == 100 : 
+        return team_1, team_2
+    else :
+        return team_2, team_1
+    
+    # Fonction pour calculer la moyenne des rangs (convertis en valeurs numériques)
+def rank_to_value(rank_data):
+    tier_values = {
+        'IRON': 100, 'BRONZE': 108, 'SILVER': 116, 'GOLD': 124, 'PLATINUM': 132, 'EMERALD' : 140,
+        'DIAMOND': 148, 'MASTER': 152, 'GRANDMASTER': 156, 'CHALLENGER': 160
+    }
+    rank_values = {'IV': 2, 'III': 4, 'II': 6, 'I': 8}
+        
+    # Convertir le rang et le palier en une valeur numérique
+    tier_value = tier_values.get(rank_data['tier'], 1)
+    rank_value = rank_values.get(rank_data['rank'], 1)
+    return tier_value + rank_value
+
+    # Calcul de la moyenne des rangs
+def calculate_team_average(team):
+    if not team:
+        return 0  # Cas où il n'y a pas de données pour l'équipe
+    return round(sum(rank_to_value(elo) for elo in team) / len(team), 4)
 
 def get_champion_name_from_api(champion_id):
     ddragon = "https://ddragon.leagueoflegends.com/api/versions.json"
@@ -139,6 +197,8 @@ async def notify_if_friends_in_game():
     channel = discord.utils.get(bot.get_all_channels(), name=CONFIG['CHANNEL'])  # Le nom du channel Discord
     previously_in_game = {}  # Dictionnaire pour suivre l'état des amis
     bet_timers = {}  # Dictionnaire pour suivre le temps des paris pour chaque ami
+    oddw = 1.89
+    oddl = 1.89
     
     gambler_ping_message = await ping_gambler_role(channel)
 
@@ -155,8 +215,17 @@ async def notify_if_friends_in_game():
             if in_game and not previously_in_game.get(summoner_name, False):
                 game_mode, gameQueueConfigId, draft, game_id = get_game_info(puuid)
 
+                team_1, team_2 = calculate_match_ranks(puuid)
+
+                avg_team_1 = calculate_team_average(team_1)
+                avg_team_2 = calculate_team_average(team_2)
+
+                if (avg_team_1 != 0) & (avg_team_2!= 0) :
+                    oddw = round(math.exp(25*(1-avg_team_1/(avg_team_1+avg_team_2)) - (25*avg_team_1/(avg_team_1+avg_team_2)) - 0.12) + 1 ,2)
+                    oddl = round(math.exp((25*avg_team_1/(avg_team_1+avg_team_2)) - 25*(1-avg_team_1/(avg_team_1+avg_team_2)) - 0.12) + 1 ,2)              
+
                 # Appel à la fonction pour afficher le message d'annonce du lancement de partie
-                await afficher_lancement_partie(channel, summoner_name, summoner_ratings, gambler_ping_message, gameQueueConfigId, draft)
+                await afficher_lancement_partie(channel, summoner_name, oddw, oddl, gambler_ping_message, gameQueueConfigId, draft)
 
                 # Démarrer un chronomètre pour fermer les paris après 3 minutes
                 bet_timers[summoner_name] = time.time()
@@ -183,10 +252,10 @@ async def notify_if_friends_in_game():
                 result = get_game_result(puuid, history[0])
 
                 if result:
-                    winners, losers = distribute_gains(summoner_name, result)
+                    winners, losers = distribute_gains(summoner_name, result, oddw, oddl)
 
                     # Appel à la nouvelle fonction pour afficher les résultats
-                    await afficher_resultat_partie(channel, summoner_name, result, winners, losers, summoner_ratings, bot)
+                    await afficher_resultat_partie(channel, summoner_name, result, winners, losers, oddw, oddl, bot)
 
                     print(f"Gagnants : {winners}")
                     print(f"Perdants : {losers}")
@@ -202,57 +271,3 @@ async def notify_if_friends_in_game():
         
         # Attendre 60 secondes avant de vérifier à nouveau
         await asyncio.sleep(60)
-
-async def update_summoner_rating_for_player(summoner_name, puuid):
-    while not bot.is_closed():
-        try:
-            # Calculer la cote du joueur
-            cote = calculate_winrate(puuid)
-
-            # Mettre à jour la cote du joueur dans le dictionnaire
-            summoner_ratings[summoner_name] = cote
-            print(f"Cote de {summoner_name} mise à jour : {cote}")
-        
-        except Exception as e:
-            print(f"Erreur lors de la mise à jour de la cote pour {summoner_name}: {e}")
-
-        # Attendre un certain intervalle avant de vérifier à nouveau
-        await asyncio.sleep(1800)  # 1800 secondes = 30 minutes
-
-# Fonction pour surveiller et lancer des tâches asynchrones pour chaque joueur
-async def update_summoner_ratings():
-    await bot.wait_until_ready()
-    
-    # Dictionnaire pour stocker les tâches asynchrones pour chaque joueur
-    tasks = {}
-    
-    while not bot.is_closed():
-        # Obtenir la liste des amis surveillés
-        friends_list = get_friends_list()
-
-        for friend in friends_list:
-            summoner_name = friend['name']
-            puuid = friend['puuid']
-            
-            # Si une tâche n'existe pas déjà pour ce joueur, on en crée une
-            if summoner_name not in tasks:
-                # Créer une nouvelle tâche pour surveiller la cote du joueur en différé
-                tasks[summoner_name] = asyncio.create_task(update_summoner_rating_for_player(summoner_name, puuid))
-        
-        # Attendre une période avant de relancer la boucle 
-        await asyncio.sleep(60)  # On peut ajuster cet intervalle si nécessaire
-
-@bot.event
-async def on_ready():
-    print(f'{bot.user} est connecté à Discord !')
-
-    # Lancer la mise à jour des évaluations des invocateurs immédiatement
-    asyncio.create_task(update_summoner_ratings())
-
-    # Attendre 30 secondes avant de lancer notify_if_friends_in_game (temporaire car tableau des joueurs déjà préétablit nécéssite d'attendre le rating)
-    await asyncio.sleep(30)
-
-    # Lancer la notification des amis en jeu après le délai de 30 secondes
-    asyncio.create_task(notify_if_friends_in_game())
-
-bot.run(TOKEN)

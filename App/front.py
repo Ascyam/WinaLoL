@@ -1,5 +1,4 @@
 import discord
-import math
 from .dictionnaire import *    
 
 async def ping_gambler_role(channel):
@@ -14,7 +13,7 @@ async def ping_gambler_role(channel):
         print("Le rôle 'Gambler' n'a pas été trouvé sur ce serveur.")
         return ""
     
-async def afficher_resultat_partie(channel, summoner_name, result, winners, losers, summoner_ratings, bot):
+async def afficher_resultat_partie(channel, summoner_name, result, winners, losers, oddw, oddl, bot):
     # Création de l'embed pour le résultat de la partie
     embed = discord.Embed(
         title="🎮 Game results",
@@ -29,7 +28,7 @@ async def afficher_resultat_partie(channel, summoner_name, result, winners, lose
     gain_text = ""
     for winner in winners:
         user = await bot.fetch_user(winner['user_id'])  # Récupérer l'utilisateur Discord
-        gain_amount = int(winner['amount'] * (math.exp(2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - (2.5 * summoner_ratings.get(summoner_name, 0.5)) - 0.15) + 1)) if result == 'win' else int(winner['amount'] * (math.exp((2.5 * summoner_ratings.get(summoner_name, 0.5)) - 2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - 0.15) + 1))
+        gain_amount = int(winner['amount'] * oddw) if result == 'win' else int(winner['amount'] * oddl)
         gain_text += f"{user.mention} a gagné {gain_amount} akhy coins.\n"
     
     if gain_text:
@@ -49,10 +48,7 @@ async def afficher_resultat_partie(channel, summoner_name, result, winners, lose
     # Envoyer l'embed au channel
     await channel.send(embed=embed)
 
-async def afficher_lancement_partie(channel, summoner_name, summoner_ratings, gambler_ping_message, gameQueueConfigId, draft):
-    # Calcul des cotes
-    cote_win = round((math.exp(2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - (2.5 * summoner_ratings.get(summoner_name, 0.5)) - 0.15) + 1), 2)
-    cote_lose = round((math.exp((2.5 * summoner_ratings.get(summoner_name, 0.5)) - 2.5 * (1 - summoner_ratings.get(summoner_name, 0.5)) - 0.15) + 1), 2)
+async def afficher_lancement_partie(channel, summoner_name, oddw, oddl, gambler_ping_message, gameQueueConfigId, draft):
 
     # Création de l'embed pour l'annonce du lancement de la partie
     embed = discord.Embed(
@@ -71,7 +67,7 @@ async def afficher_lancement_partie(channel, summoner_name, summoner_ratings, ga
     # Ajouter les cotes de pari
     embed.add_field(
         name="Cotes actuelles",
-        value=f"Victoire (Win) : **{cote_win}**\nDéfaite (Lose) : **{cote_lose}**",
+        value=f"Victoire (Win) : **{oddw}**\nDéfaite (Lose) : **{oddl}**",
         inline=False
     )
 
