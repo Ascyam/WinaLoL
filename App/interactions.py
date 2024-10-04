@@ -27,73 +27,79 @@ async def afficher_aide(ctx):
 
     # Ajout des différentes commandes avec des champs
     embed.add_field(
-        name="**??add_summoner <nom> <tag>**",
+        name="🟢 **??add_summoner <nom> <tag>**",
         value="Ajoute un ami à la liste des invocateurs surveillés.\nExemple : `??add_summoner YoyoRapido RAPH`",
         inline=False
     )
 
     embed.add_field(
-        name="**??remove_summoner <nom> <tag>**",
+        name="🔴 **??remove_summoner <nom> <tag>**",
         value="Retire un ami de la liste des invocateurs surveillés.\nExemple : `??remove_summoner YoyoRapido RAPH`",
         inline=False
     )
 
     embed.add_field(
-        name="**??list_summoners**",
+        name="👥 **??list_summoners**",
         value="Affiche la liste actuelle des invocateurs surveillés.\nExemple : `??list_summoners`",
         inline=False
     )
 
     embed.add_field(
-        name="**??bet <nom_ami> <montant> <win/lose>**",
+        name="🎰 **??bet <nom_ami> <montant> <win/lose>**",
         value="Parie des akhy coins sur la victoire ou la défaite d'un ami.\nExemple : `??bet YoyoRapido 50 win`",
         inline=False
     )
 
     embed.add_field(
-        name="**??bet_options**",
+        name="🤑 **??bet_options**",
         value="Affiche l'état actuel des paris.\nExemple : `??bet_options`",
         inline=False
     )
 
     embed.add_field(
-        name="**??balance**",
+        name="💰 **??balance**",
         value="Affiche ton solde actuel d'akhy coins.\nExemple : `??balance`",
         inline=False
     )
 
     embed.add_field(
-        name="**??current_bets**",
+        name="📝 **??current_bets**",
         value="Affiche la liste des paris encore actifs, du plus gros au plus petit, jusqu'à 20 paris.\nExemple : `??current_bets`",
         inline=False
     )
 
     embed.add_field(
-        name="**??rankings**",
+        name="🏆 **??rankings**",
         value="Affiche le classement Elo des invocateurs suivis du meilleur au moins bon.\nExemple : `??rankings`",
         inline=False
     )
 
     embed.add_field(
-        name="**??leaderboard**",
+        name="🏅 **??leaderboard**",
         value="Affiche le classement des meilleurs parieurs en fonction de leur nombre de jetons.\nExemple : `??leaderboard`",
         inline=False
     )
 
     embed.add_field(
-        name="**??daily**",
-        value="Récupère 10 akhy coins une fois par jour. Après 10, 30 et 100 jours consécutifs, tu peux recevoir un bonus de 50, 100 ou 1000 akhy coins.\nExemple : `??daily`",
+        name="🎁 **??daily**",
+        value="Récupère 10 akhy coins une fois par jour. Après 10, 30 et 100 jours consécutifs, tu peux recevoir un bonus de 100, 1000 ou 10000 akhy coins.\nExemple : `??daily`",
         inline=False
     )
 
     embed.add_field(
-        name="**??show_config**",
+        name="⚙️ **??show_config**",
         value="Affiche les paramètres de configuration actuels du bot.\nExemple : `??show_config`",
         inline=False
     )
 
     embed.add_field(
-        name="**??aide**",
+        name="🔧 **??config**",
+        value="Modifie la configuration du bot. Exemples : `!config REGION_Lol euw1`, `!config REGION_Riot europe`, `!config ROLE Gambler` ou `!config CHANNEL winalol`.",
+        inline=False
+    )
+
+    embed.add_field(
+        name="❓ **??aide**",
         value="Affiche cette aide détaillée.",
         inline=False
     )
@@ -346,11 +352,11 @@ async def daily(ctx):
         # Vérifier les bonus en fonction des jours consécutifs
         bonus = 0
         if consecutive_days % 100 == 0 and consecutive_days > 0:
-            bonus = 1000  # Bonus de 1000 jetons après chaque 100 jours
+            bonus = 10000  # Bonus de 10000 jetons après chaque 100 jours
         elif consecutive_days % 30 == 0 and consecutive_days > 0:
-            bonus = 100  # Bonus de 100 jetons après chaque 30 jours
+            bonus = 1000  # Bonus de 1000 jetons après chaque 30 jours
         elif consecutive_days % 10 == 0 and consecutive_days > 0:
-            bonus = 50  # Bonus de 50 jetons après chaque 10 jours
+            bonus = 100  # Bonus de 100 jetons après chaque 10 jours
         
         # Appliquer le bonus s'il existe
         if bonus > 0:
@@ -432,3 +438,24 @@ async def bet_options(ctx):
 async def show_config(ctx):
     config_message = "\n".join([f"**{key}**: {value}" for key, value in CONFIG.items()])
     await ctx.send(f"**Configuration actuelle du bot :**\n{config_message}")
+
+@bot.command(name='config', help="Modifie la configuration du bot.")
+@commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
+async def config(ctx, key: str, value: str):
+    # Vérifier si la clé existe dans la configuration
+    if key not in CONFIG:
+        await ctx.send(f"La clé `{key}` n'existe pas dans la configuration.")
+        return
+
+    # Vérification de la valeur de la clé spécifique
+    if key == 'REGION_Lol' and value not in VALID_REGION_LOL:
+        await ctx.send(f"Région LoL invalide. Les valeurs valides sont: {', '.join(VALID_REGION_LOL)}")
+        return
+
+    if key == 'REGION_Riot' and value not in VALID_REGION_RIOT:
+        await ctx.send(f"Région Riot invalide. Les valeurs valides sont: {', '.join(VALID_REGION_RIOT)}")
+        return
+
+    # Mise à jour de la configuration
+    CONFIG[key] = value
+    await ctx.send(f"Configuration `{key}` modifiée à `{value}`.")

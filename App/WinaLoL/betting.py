@@ -85,7 +85,7 @@ def place_bet(user_id, summoner_name, amount, choice):
     # Enregistrer le pari
     active_bets[summoner_name][choice].append({'user_id': user_id, 'amount': amount})
 
-    return True, f"Tu as parié {amount} akhy coins sur la {'victoire' if choice == 'win' else 'défaite'} de {summoner_name}."
+    return True, f"Tu as parié **{amount} akhy coins** sur la {'victoire' if choice == 'win' else 'défaite'} de {summoner_name}."
 
 # Calcul des gains à la fin d'une partie
 def distribute_gains(friend_name, result):
