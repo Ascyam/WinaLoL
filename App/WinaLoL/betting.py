@@ -58,23 +58,23 @@ def place_bet(user_id, summoner_name, amount, choice):
     if game_queue_id not in allowed_game_modes:
         return False, "Cette partie n'est pas pariable en raison du mode de jeu."
 
-    # Vérifier si l'utilisateur a déjà parié sur un autre joueur dans la même partie
+    # Vérifier si l'utilisateur a déjà parié sur un autre summoner dans la même partie
     for bet_summoner, bet_info in active_bets.items():
-        # Récupérer le game_id du joueur lié au pari
-        bet_game_id = get_game_id_for_summoner(bet_summoner)
+        bet_game_id, bet_gameQueueConfigId = get_game_id_for_summoner(bet_summoner)
 
-        # Vérifier si le joueur lié au pari est dans la même partie
+        # Si le summoner est dans la même partie
         if bet_game_id == game_id:
-            # Rechercher si l'utilisateur a déjà parié dans cette partie
-            if any(bet['user_id'] == user_id for bet in bet_info['win'] + bet_info['lose']):
-                return False, f"Tu as déjà parié sur un joueur dans cette partie ({bet_summoner})."
+            # Vérifier si l'utilisateur a déjà parié sur ce summoner dans cette partie
+            for bet in bet_info['win'] + bet_info['lose']:
+                if bet['user_id'] == user_id:
+                    return False, f"Tu as déjà parié sur un joueur dans cette partie ({bet_summoner})."
 
     # Vérifier le solde de l'utilisateur
     if get_balance(user_id) < amount:
         return False, "Solde insuffisant pour placer ce pari."
 
-    if amount > 100000:
-        return False, "Tu ne peux parier que 100000 akhy coins maximum."
+    if (amount > 100000) or (amount < 1):
+        return False, "Tu ne peux parier que 100000 akhy coins maximum et 1 akhy coin minimum."
 
     # Retirer les coins de l'utilisateur
     remove_coins(user_id, amount)
