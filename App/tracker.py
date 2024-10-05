@@ -1,4 +1,5 @@
 import asyncio
+import math
 import time
 
 from .WinaLoL.betting import *
