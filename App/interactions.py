@@ -1,20 +1,23 @@
+from datetime import datetime, timedelta
+
 import discord
 from discord.ext import commands
-from datetime import datetime, timedelta
-from .friends import add_friend, remove_friend, get_friends_list, get_summoner_rank
+
 from .WinaLoL.betting import active_bets, place_bet, get_active_bets, currently_ingame
 from .WinaLoL.wallet import get_balance, add_coins, user_wallets
 from .dictionnaire import *
+from .friends import add_friend, remove_friend, get_friends_list, get_summoner_rank
 
 intents = discord.Intents.default()
 intents.message_content = True
-intents.members = True 
+intents.members = True
 bot = commands.Bot(command_prefix="??", intents=intents)
 
 # Variable globale pour suivre si la configuration a été effectuée
 config_initialized = False
 
-user_claim_data  = {}
+user_claim_data = {}
+
 
 @bot.command(name='aide', help="Affiche toutes les commandes disponibles.")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
@@ -22,7 +25,7 @@ async def afficher_aide(ctx):
     embed = discord.Embed(
         title="📜 Commandes disponibles",
         description="Voici la liste des commandes que vous pouvez utiliser avec le bot.",
-        color=discord.Color.gold()  
+        color=discord.Color.gold()
     )
 
     # Ajout des différentes commandes avec des champs
@@ -107,6 +110,7 @@ async def afficher_aide(ctx):
     # Envoie l'embed dans le channel
     await ctx.send(embed=embed)
 
+
 @bot.command(name='add_summoner', help="Ajoute un ami à la liste des idiots. Usage: ??add_summoner <nom> <tag>")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
 async def ajouter_ami(ctx, *args):
@@ -122,6 +126,7 @@ async def ajouter_ami(ctx, *args):
     # Ajout du joueur
     add_friend(summoner_name, tag_line)
     await ctx.send(f"Ajout de {summoner_name}#{tag_line} à la liste des amis.")
+
 
 @bot.command(name='remove_summoner', help="Retire un ami de la liste des idiots. Usage: ??remove_summoner <nom> <tag>")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
@@ -161,7 +166,9 @@ async def lister(ctx):
 
     await ctx.send(embed=embed)
 
-@bot.command(name='bet', help="Parier sur la victoire ou la défaite d'un ami. Usage: ??bet <nom_ami> <montant> <win/lose>")
+
+@bot.command(name='bet',
+             help="Parier sur la victoire ou la défaite d'un ami. Usage: ??bet <nom_ami> <montant> <win/lose>")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
 async def bet(ctx, *args):
     # Vérifier que le nombre d'arguments est suffisant (au moins 3)
@@ -189,6 +196,7 @@ async def bet(ctx, *args):
     success, message = place_bet(user_id, friend_name, amount, choice)
     await ctx.send(message)
 
+
 @bot.command(name='balance', help="Voir ton solde d'akhy coins.")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
 async def balance(ctx):
@@ -196,11 +204,12 @@ async def balance(ctx):
     balance = get_balance(user_id)
     await ctx.send(f"Tu as {balance} akhy coins.")
 
+
 @bot.command(name='current_bets', help="Affiche les 20 plus gros paris encore actifs.")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
 async def current_bets(ctx):
     active_bets_list = get_active_bets()
-    
+
     if not active_bets_list:
         embed = discord.Embed(
             title="💸 Paris actifs :",
@@ -224,6 +233,7 @@ async def current_bets(ctx):
 
     await ctx.send(embed=embed)
 
+
 @bot.command(name='rankings', help="Affiche le classement Elo des invocateurs surveillés du meilleur au moins bon.")
 @commands.cooldown(rate=1, per=30.0, type=commands.BucketType.user)
 async def afficher_ranking(ctx):
@@ -243,13 +253,13 @@ async def afficher_ranking(ctx):
                 'rank': summoner_rank['rank'],
                 'lp': summoner_rank['lp']
             })
-    
+
     # Trier les invocateurs par tier, rank et league points (lp)
     ranked_friends.sort(
         key=lambda x: (
-            TIER_ORDER.get(x['tier'], 0),         # Trier par tier (numérique)
-            RANK_ORDER.get(x['rank'], 0),         # Trier par rank (numérique)
-            x['lp']                               # Trier par league points (lp)
+            TIER_ORDER.get(x['tier'], 0),  # Trier par tier (numérique)
+            RANK_ORDER.get(x['rank'], 0),  # Trier par rank (numérique)
+            x['lp']  # Trier par league points (lp)
         ),
         reverse=True
     )
@@ -277,12 +287,14 @@ async def afficher_ranking(ctx):
 
         await ctx.send(embed=embed)
 
-@bot.command(name='leaderboard', help="Affiche le classement des meilleurs parieurs en fonction de leur nombre de jetons.")
+
+@bot.command(name='leaderboard',
+             help="Affiche le classement des meilleurs parieurs en fonction de leur nombre de jetons.")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
 async def leaderboard(ctx):
     # Récupère les soldes de tous les parieurs
     balances = user_wallets
-    
+
     # Si aucun parieur n'a été trouvé
     if not balances:
         embed = discord.Embed(
@@ -317,7 +329,9 @@ async def leaderboard(ctx):
     # Envoie le classement sous forme d'embed
     await ctx.send(embed=embed)
 
-@bot.command(name='daily', help="Récupère 10 akhy coins une fois par jour, avec des bonus de jetons après 10, 30, et 100 jours consécutifs.")
+
+@bot.command(name='daily',
+             help="Récupère 10 akhy coins une fois par jour, avec des bonus de jetons après 10, 30, et 100 jours consécutifs.")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
 async def daily(ctx):
     user_id = str(ctx.author.id)
@@ -338,7 +352,7 @@ async def daily(ctx):
     last_claim_time = user_claim_data[user_id]['last_claim']
     consecutive_days = user_claim_data[user_id]['consecutive_days']
 
-     # Vérifier si plus de 24 heures se sont écoulées depuis la dernière réclamation
+    # Vérifier si plus de 24 heures se sont écoulées depuis la dernière réclamation
     if current_time - last_claim_time >= timedelta(days=1):
         # Vérifier si la réclamation est consécutive ou non
         if current_time - last_claim_time <= timedelta(days=2):
@@ -348,7 +362,7 @@ async def daily(ctx):
 
         # Donner les 10 jetons journaliers
         add_coins(user_id, 10)
-        
+
         # Vérifier les bonus en fonction des jours consécutifs
         bonus = 0
         if consecutive_days % 100 == 0 and consecutive_days > 0:
@@ -357,24 +371,26 @@ async def daily(ctx):
             bonus = 1000  # Bonus de 1000 jetons après chaque 30 jours
         elif consecutive_days % 10 == 0 and consecutive_days > 0:
             bonus = 100  # Bonus de 100 jetons après chaque 10 jours
-        
+
         # Appliquer le bonus s'il existe
         if bonus > 0:
             add_coins(user_id, bonus)  # Ajout du bonus au portefeuille de l'utilisateur
-            await ctx.send(f"Félicitations ! Tu as récupéré un bonus de {bonus} akhy coins pour {consecutive_days} jours consécutifs de réclamations !")
-        
+            await ctx.send(
+                f"Félicitations ! Tu as récupéré un bonus de {bonus} akhy coins pour {consecutive_days} jours consécutifs de réclamations !")
+
         # Mise à jour des informations de l'utilisateur
         user_claim_data[user_id]['last_claim'] = current_time
         user_claim_data[user_id]['consecutive_days'] = consecutive_days
 
         await ctx.send(f"Tu as récupéré 10 akhy coins ! ({consecutive_days} jours consécutifs)")
-    
+
     else:
         # Si l'utilisateur a déjà réclamé des jetons dans les dernières 24 heures
         time_remaining = (last_claim_time + timedelta(days=1)) - current_time
         hours, remainder = divmod(time_remaining.seconds, 3600)
         minutes, _ = divmod(remainder, 60)
         await ctx.send(f"Tu as déjà récupéré tes jetons aujourd'hui. Reviens dans {hours}h{minutes}m.")
+
 
 @bot.command(name='bet_options', help="Affiche l'état actuel des paris.")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
@@ -433,11 +449,13 @@ async def bet_options(ctx):
     # Envoyer l'embed
     await ctx.send(embed=embed)
 
+
 @bot.command(name='show_config', help="Affiche les paramètres actuels du bot.")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
 async def show_config(ctx):
     config_message = "\n".join([f"**{key}**: {value}" for key, value in CONFIG.items()])
     await ctx.send(f"**Configuration actuelle du bot :**\n{config_message}")
+
 
 @bot.command(name='config', help="Modifie la configuration du bot.")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)

@@ -1,4 +1,5 @@
 import random
+
 from .wallet import remove_coins, get_balance
 
 user_inventories = {}
@@ -41,10 +42,11 @@ DROP_CHANCES = {
 
 # Prix des coffres
 CHEST_PRICES = {
-    "Commun": 1000,      # Coffre commun
-    "Rare": 10000,       # Coffre avec minimum un skin rare
-    "Epique": 100000     # Coffre avec minimum un skin Epique
+    "Commun": 1000,  # Coffre commun
+    "Rare": 10000,  # Coffre avec minimum un skin rare
+    "Epique": 100000  # Coffre avec minimum un skin Epique
 }
+
 
 # Fonction pour acheter un coffre
 def buy_chest(user_id, chest_type):
@@ -63,6 +65,7 @@ def buy_chest(user_id, chest_type):
 
     return True, f"Félicitations ! Vous avez obtenu le skin : {skin}"
 
+
 # Fonction pour ouvrir un coffre et retourner un skin en fonction du type
 def open_chest(chest_type):
     rarity_chances = DROP_CHANCES[chest_type]
@@ -74,7 +77,8 @@ def open_chest(chest_type):
         if rand <= cumulative_probability:
             # Retourner un skin aléatoire de la rareté obtenue
             return random.choice(RARITIES[rarity])
-    
+
+
 # Fonction pour ajouter un skin à l'inventaire de l'utilisateur
 def add_to_inventory(user_id, skin):
     # Vérifiez si l'utilisateur a déjà un inventaire
