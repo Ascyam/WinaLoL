@@ -4,6 +4,7 @@ INITIAL_BALANCE = 100
 # Dictionnaire pour stocker les akhy coins des utilisateurs
 user_wallets = {}
 
+
 # Fonction pour initialiser un utilisateur avec 100 akhy coins s'il n'a pas de compte
 def initialize_user(user_id):
     if user_id not in user_wallets:
@@ -12,15 +13,17 @@ def initialize_user(user_id):
         return True
     return False
 
+
 # Fonction pour ajouter des akhy coins à un utilisateur
 def add_coins(user_id, amount):
     initialize_user(user_id)  # S'assurer que l'utilisateur est initialisé
-    if (user_wallets[user_id] + amount) < 2**62 :
+    if (user_wallets[user_id] + amount) < 2 ** 62:
         user_wallets[user_id] += amount
         print(f"{amount} akhy coins ont été ajoutés à {user_id}. Total: {user_wallets[user_id]}")
-    else :
+    else:
         print(f"{user_id} a atteint la limite de Akhy coins")
-    
+
+
 # Fonction pour retirer des akhy coins à un utilisateur
 def remove_coins(user_id, amount):
     initialize_user(user_id)  # S'assurer que l'utilisateur est initialisé
@@ -29,6 +32,7 @@ def remove_coins(user_id, amount):
     user_wallets[user_id] -= amount
     print(f"{amount} akhy coins ont été retirés à {user_id}. Total: {user_wallets[user_id]}")
     return True
+
 
 # Fonction pour obtenir le solde d'un utilisateur
 def get_balance(user_id):
