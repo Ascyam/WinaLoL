@@ -149,6 +149,8 @@ def remove_finished_bets(friend_name):
         del active_bets[friend_name]
 
 def compute_oddw_oddl(avg_team_1, avg_team_2):
-    oddw = round(math.exp(45 * (1 - avg_team_1 / (avg_team_1 + avg_team_2)) - (45 * avg_team_1 / (avg_team_1 + avg_team_2)) - 0.12) + 1, 2)
-    oddl = round(math.exp(45 * avg_team_1 / (avg_team_1 + avg_team_2) - 45 * (1 - avg_team_1 / (avg_team_1 + avg_team_2)) - 0.12) + 1, 2)
+    alpha = 36.77811458900251
+    beta = math.log(10./9.)
+    oddw = round(math.exp(alpha * (1. - avg_team_1 / (avg_team_1 + avg_team_2)) - (alpha * avg_team_1 / (avg_team_1 + avg_team_2)) - beta) + 1., 2)
+    oddl = round(math.exp(alpha * (avg_team_1 / (avg_team_1 + avg_team_2)) - alpha * (1. - avg_team_1 / (avg_team_1 + avg_team_2)) - beta) + 1., 2)
     return oddw, oddl
