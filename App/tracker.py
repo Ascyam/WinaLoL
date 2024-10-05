@@ -237,7 +237,7 @@ async def notify_if_friends_in_game():
                             1 - avg_team_1 / (avg_team_1 + avg_team_2)) - 0.12) + 1, 2)
 
                     # Appel à la fonction pour afficher le message d'annonce du lancement de partie
-                await afficher_lancement_partie(channel, summoner_name, oddw, oddl, gambler_ping_message,
+                await print_game_start(channel, summoner_name, oddw, oddl, gambler_ping_message,
                                                 gameQueueConfigId, draft)
 
                 # Démarrer un chronomètre pour fermer les paris après 3 minutes
@@ -268,7 +268,7 @@ async def notify_if_friends_in_game():
                     winners, losers = distribute_gains(summoner_name, result, oddw, oddl)
 
                     # Appel à la nouvelle fonction pour afficher les résultats
-                    await afficher_resultat_partie(channel, summoner_name, result, winners, losers, oddw, oddl, bot)
+                    await print_game_result(channel, summoner_name, result, winners, losers, oddw, oddl, bot)
 
                     print(f"Gagnants : {winners}")
                     print(f"Perdants : {losers}")

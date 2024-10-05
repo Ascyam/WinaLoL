@@ -6,45 +6,45 @@ user_inventories = {}
 
 # Définir les niveaux de rareté
 RARITIES = {
-    "Commun": ["Skin Commun 1", "Skin Commun 2", "Skin Commun 3"],
-    "Peu Commun": ["Skin Peu Commun 1", "Skin Peu Commun 2"],
+    "Common": ["Skin Commun 1", "Skin Commun 2", "Skin Commun 3"],
+    "Uncommon": ["Skin Peu Commun 1", "Skin Peu Commun 2"],
     "Rare": ["Skin Rare 1", "Skin Rare 2"],
-    "Très Rare": ["Skin Très Rare 1"],
-    "Epique": ["Skin Epique 1"],
-    "Légendaire": ["Skin Légendaire 1"],
-    "Inestimable": ["Skin Inestimable 1"]
+    "Super Rare": ["Skin Très Rare 1"],
+    "Epic": ["Skin Epique 1"],
+    "Legendary": ["Skin Légendaire 1"],
+    "Invaluable": ["Skin Inestimable 1"]
 }
 
 # Définir les chances de drop pour chaque type de coffre
 DROP_CHANCES = {
-    "Commun": {
-        "Commun": 50.0,
-        "Peu Commun": 30.0,
+    "Common": {
+        "Common": 50.0,
+        "Uncommon": 30.0,
         "Rare": 15.0,
-        "Très Rare": 4,
-        "Epique": 0.8,
-        "Légendaire": 0.19,
-        "Inestimable": 0.01
+        "Super Rare": 4,
+        "Epic": 0.8,
+        "Legendary": 0.19,
+        "Invaluable": 0.01
     },
     "Rare": {
         "Rare": 50.0,
-        "Très Rare": 30.0,
-        "Epique": 15.0,
-        "Légendaire": 4.5,
-        "Inestimable": 0.5
+        "Super Rare": 30.0,
+        "Epic": 15.0,
+        "Legendary": 4.5,
+        "Invaluable": 0.5
     },
-    "Epique": {
-        "Epique": 60.0,
-        "Légendaire": 30.0,
-        "Inestimable": 10.0
+    "Epic": {
+        "Epic": 60.0,
+        "Legendary": 30.0,
+        "Invaluable": 10.0
     }
 }
 
 # Prix des coffres
 CHEST_PRICES = {
-    "Commun": 1000,  # Coffre commun
+    "Common": 1000,  # Coffre commun
     "Rare": 10000,  # Coffre avec minimum un skin rare
-    "Epique": 100000  # Coffre avec minimum un skin Epique
+    "Epic": 100000  # Coffre avec minimum un skin Epique
 }
 
 
@@ -60,7 +60,7 @@ def buy_chest(user_id, chest_type):
     # Ouvrir le coffre et obtenir un skin
     skin = open_chest(chest_type)
 
-    # Ajouter le skin à l'inventaire de l'utilisateur (à implémenter)
+    # Ajouter le skin à l'inventaire de l'utilisateur
     add_to_inventory(user_id, skin)
 
     return True, f"Félicitations ! Vous avez obtenu le skin : {skin}"
