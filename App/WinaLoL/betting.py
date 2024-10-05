@@ -1,3 +1,5 @@
+import math
+
 from .wallet import add_coins, remove_coins, get_balance
 
 # Structure pour stocker les paris en cours
@@ -145,3 +147,8 @@ def get_active_bets():
 def remove_finished_bets(friend_name):
     if friend_name in active_bets:
         del active_bets[friend_name]
+
+def compute_oddw_oddl(avg_team_1, avg_team_2):
+    oddw = round(math.exp(45 * (1 - avg_team_1 / (avg_team_1 + avg_team_2)) - (45 * avg_team_1 / (avg_team_1 + avg_team_2)) - 0.12) + 1, 2)
+    oddl = round(math.exp(45 * avg_team_1 / (avg_team_1 + avg_team_2) - 45 * (1 - avg_team_1 / (avg_team_1 + avg_team_2)) - 0.12) + 1, 2)
+    return oddw, oddl
