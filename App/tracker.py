@@ -1,5 +1,4 @@
 import asyncio
-import math
 import time
 
 from .WinaLoL.betting import *
@@ -229,10 +228,7 @@ async def notify_if_friends_in_game():
                 avg_team_2 = calculate_team_average(team_2)
 
                 if (avg_team_1 != 0) & (avg_team_2 != 0):
-                    oddw = round(math.exp(25 * (1 - avg_team_1 / (avg_team_1 + avg_team_2)) - (
-                            25 * avg_team_1 / (avg_team_1 + avg_team_2)) - 0.12) + 1, 2)
-                    oddl = round(math.exp((25 * avg_team_1 / (avg_team_1 + avg_team_2)) - 25 * (
-                            1 - avg_team_1 / (avg_team_1 + avg_team_2)) - 0.12) + 1, 2)
+                    oddw, oddl = compute_oddw_oddl(avg_team_1, avg_team_2)
 
                     # Appel à la fonction pour afficher le message d'annonce du lancement de partie
                 await display_game_start(channel, summoner_name, oddw, oddl, gambler_ping_message,
