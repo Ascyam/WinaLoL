@@ -174,9 +174,7 @@ def rank_to_value(rank_data):
     rank_value = rank_values.get(rank_data['rank'], 1)
     return tier_value + rank_value
 
-    # Calcul de la moyenne des rangs
-
-
+# Calcul de la moyenne des rangs
 def calculate_team_average(team):
     if not team:
         return 0  # Cas où il n'y a pas de données pour l'équipe
@@ -237,7 +235,7 @@ async def notify_if_friends_in_game():
                             1 - avg_team_1 / (avg_team_1 + avg_team_2)) - 0.12) + 1, 2)
 
                     # Appel à la fonction pour afficher le message d'annonce du lancement de partie
-                await print_game_start(channel, summoner_name, oddw, oddl, gambler_ping_message,
+                await display_game_start(channel, summoner_name, oddw, oddl, gambler_ping_message,
                                                 gameQueueConfigId, draft)
 
                 # Démarrer un chronomètre pour fermer les paris après 3 minutes
@@ -268,7 +266,7 @@ async def notify_if_friends_in_game():
                     winners, losers = distribute_gains(summoner_name, result, oddw, oddl)
 
                     # Appel à la nouvelle fonction pour afficher les résultats
-                    await print_game_result(channel, summoner_name, result, winners, losers, oddw, oddl, bot)
+                    await display_game_result(channel, summoner_name, result, winners, losers, oddw, oddl, bot)
 
                     print(f"Gagnants : {winners}")
                     print(f"Perdants : {losers}")
