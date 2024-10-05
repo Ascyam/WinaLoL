@@ -16,7 +16,7 @@ async def ping_gambler_role(channel):
         return ""
 
 
-async def afficher_resultat_partie(channel, summoner_name, result, winners, losers, oddw, oddl, bot):
+async def print_game_result(channel, summoner_name, result, winners, losers, oddw, oddl, bot):
     # Création de l'embed pour le résultat de la partie
     embed = discord.Embed(
         title="🎮 Game results",
@@ -52,7 +52,7 @@ async def afficher_resultat_partie(channel, summoner_name, result, winners, lose
     await channel.send(embed=embed)
 
 
-async def afficher_lancement_partie(channel, summoner_name, oddw, oddl, gambler_ping_message, gameQueueConfigId, draft):
+async def print_game_start(channel, summoner_name, oddw, oddl, gambler_ping_message, gameQueueConfigId, draft):
     # Création de l'embed pour l'annonce du lancement de la partie
     embed = discord.Embed(
         title="🎮 Nouveau Match en cours !",

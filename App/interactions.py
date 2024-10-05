@@ -21,7 +21,7 @@ user_claim_data = {}
 
 @bot.command(name='aide', help="Affiche toutes les commandes disponibles.")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
-async def afficher_aide(ctx):
+async def print_help(ctx):
     embed = discord.Embed(
         title="📜 Commandes disponibles",
         description="Voici la liste des commandes que vous pouvez utiliser avec le bot.",
@@ -113,7 +113,7 @@ async def afficher_aide(ctx):
 
 @bot.command(name='add_summoner', help="Ajoute un ami à la liste des idiots. Usage: ??add_summoner <nom> <tag>")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
-async def ajouter_ami(ctx, *args):
+async def add_summoner(ctx, *args):
     # Vérifier que le nombre d'arguments est suffisant (au moins 2 : nom et tag)
     if len(args) < 2:
         await ctx.send("Utilisation incorrecte. Usage: ??add_summoner <nom_composé> <tag>")
@@ -130,7 +130,7 @@ async def ajouter_ami(ctx, *args):
 
 @bot.command(name='remove_summoner', help="Retire un ami de la liste des idiots. Usage: ??remove_summoner <nom> <tag>")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
-async def retirer_ami(ctx, *args):
+async def remove_summoner(ctx, *args):
     # Vérifier que le nombre d'arguments est suffisant (au moins 2 : nom et tag)
     if len(args) < 2:
         await ctx.send("Utilisation incorrecte. Usage: ??remove_summoner <nom_composé> <tag>")
@@ -147,7 +147,7 @@ async def retirer_ami(ctx, *args):
 
 @bot.command(name='list_summoners', help="Affiche la liste actuelle des invocateurs.")
 @commands.cooldown(rate=1, per=3.0, type=commands.BucketType.user)
-async def lister(ctx):
+async def list_summoners(ctx):
     friends_list = get_friends_list()
 
     if not friends_list:
@@ -236,7 +236,7 @@ async def current_bets(ctx):
 
 @bot.command(name='rankings', help="Affiche le classement Elo des invocateurs surveillés du meilleur au moins bon.")
 @commands.cooldown(rate=1, per=30.0, type=commands.BucketType.user)
-async def afficher_ranking(ctx):
+async def show_rankings(ctx):
     friends_list = get_friends_list()
     ranked_friends = []
 
