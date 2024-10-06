@@ -1,0 +1,11 @@
+services:
+  db:
+    image: mysql:latest
+    container_name: 'mysql'
+    restart: always
+    environment: 
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    expose: 
+      - '3306'
+    ports:
+      - '3306:3306'
